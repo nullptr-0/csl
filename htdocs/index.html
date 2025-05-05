@@ -40,8 +40,9 @@
         .nav {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             padding: 1rem 0;
-            margin-bottom: 2rem;
+            position: relative;
         }
 
         .nav a {
@@ -49,6 +50,19 @@
             text-decoration: none;
             margin: 0 1rem;
             font-weight: 500;
+        }
+
+        .nav-links {
+            display: flex;
+        }
+
+        .hamburger {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
         }
 
         .features-grid {
@@ -72,7 +86,7 @@
         code {
             background: var(--dark);
             color: var(--secondary);
-            padding: 0.2em 0.4em;
+            padding: 0.2em 0;
             border-radius: 4px;
             font-family: 'Consolas', monospace;
         }
@@ -84,6 +98,17 @@
             border-radius: 8px;
             margin: 2rem 0;
             overflow-x: auto;
+        }
+
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .code-sample::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .code-sample {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
         }
 
         .cta {
@@ -100,7 +125,40 @@
             font-weight: bold;
             display: inline-block;
         }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                width: 100%;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                background: var(--primary);
+                padding: 1rem;
+                z-index: 1000;
+            }
+
+                .nav-links.active {
+                    display: flex;
+                }
+
+            .hamburger {
+                display: block;
+            }
+
+            .nav-links a {
+                padding: 0.5rem 0;
+                border-bottom: 1px solid rgba(255,255,255,0.1);
+            }
+        }
     </style>
+    <script>
+        function toggleMenu() {
+            const navLinks = document.getElementById('navLinks');
+            navLinks.classList.toggle('active');
+        }
+    </script>
 </head>
 <body>
     <header class="hero">
@@ -108,7 +166,8 @@
             <div>
                 <a href="#"><strong>CSL</strong></a>
             </div>
-            <div>
+            <button class="hamburger" onclick="toggleMenu()">☰</button>
+            <div class="nav-links" id="navLinks">
                 <a href="#features">Features</a>
                 <a href="./docs.html">Documentation</a>
                 <a href="https://github.com/nullptr-0/csl/issues">Feedback</a>
@@ -116,7 +175,7 @@
         </nav>
         
         <div class="container">
-            <h1 style="font-size: 3.5rem; margin-bottom: 1rem;">Config Schema Language</h1>
+            <h1 style="font-size: 3.5rem; margin-top: 2rem; margin-bottom: 1rem;">Config Schema Language</h1>
             <p style="font-size: 1.5rem; margin-bottom: 2rem;">
                 Type-Safe Configuration Schema with Human-Friendly Syntax
             </p>
@@ -195,7 +254,10 @@
                         <h3>Build From Source</h3>
                         <p>Build a CSL implementation:</p>
                         <div class="code-sample" style="padding: 1rem; margin: 1rem 0;">
-                            <code>git clone https://github.com/nullptr-0/toml.git<br />cd toml<br />cmake -B build -S .<br />cmake --build build</code>
+                            <pre><code>git clone https://github.com/nullptr-0/toml.git
+cd toml
+cmake -B build -S .
+cmake --build build</code></pre>
                         </div>
                     </div>
 
@@ -209,7 +271,7 @@
                         <div class="code-sample" style="padding: 1rem; margin: 1rem 0;">
                             <pre><code>config AppConfig {
   app_name: string;
-  port: number @range(1,65535);
+  port: number @range(1, 65535);
   features: string[];
 }</code></pre>
                         </div>
