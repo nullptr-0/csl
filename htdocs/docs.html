@@ -216,12 +216,6 @@ config MyAppConfig {
             </li>
             <li>
               <p>
-                <strong>Identifiers (Keys)</strong>:
-                <code>[a-zA-Z_][a-zA-Z0-9_]*</code> or a string literal.
-              </p>
-            </li>
-            <li>
-              <p>
                 <strong>Numbers</strong>: Decimal numbers (e.g.,
                 <code>123</code>, <code>3.14</code> and <code>1e5</code>),
                 binary numbers (start with <code>0b</code>), octal numbers
@@ -300,6 +294,10 @@ config MyAppConfig {
                   <tr>
                     <td><code>\\</code></td>
                     <td>backslash</td>
+                  </tr>
+                  <tr>
+                    <td><code>\`</code></td>
+                    <td>backtick</td>
                   </tr>
                   <tr>
                     <td><code>\</code> + up to 3 octal digits</td>
@@ -397,6 +395,16 @@ config MyAppConfig {
                   </tr>
                 </tbody>
               </table>
+            </li>
+            <li>
+              <p>
+                <strong>Identifiers (Keys)</strong>:
+                <code>[a-zA-Z_][a-zA-Z0-9_]*</code> or content enclosed in backticks (<code>`</code>) using the same rules as string literals.
+              <pre><code class="language-CSL">key: number;
+`quotedKey1`: number;
+R`delim(quotedKey2)delim`: number;
+</code></pre>
+              </p>
             </li>
           </ul>
         </li>

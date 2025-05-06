@@ -75,7 +75,6 @@ config MyAppConfig {
 
 1. **Token Format**
    - **Comments**: `//` marks the rest of the line as a comment, except when inside a string.
-   - **Identifiers (Keys)**: `[a-zA-Z_][a-zA-Z0-9_]*` or a string literal.
    - **Numbers**: Decimal numbers (e.g., `123`, `3.14` and `1e5`), binary numbers (start with `0b`), octal numbers (start with `0o`), hexadecimal numbers (start with `0x`) and special numbers (`nan`, `+nan`, `-nan`, `inf`, `+inf` and `-inf`). Use a `_` to enhance readability (e.g., `1_000_000`).
    - **Booleans**: `true`/`false`.
    - **Strings**: Normal string literals (`"..."`, where escape sequences are allowed) and raw string literals (`R"delim(...)delim"`, where the delimiter matches `[a-zA-Z0-9!\"#%&'*+,\-.\/:;<=>?\[\]^_{|}~]{0,16}`). The valid escape sequences in normal strings are:
@@ -92,6 +91,7 @@ config MyAppConfig {
      | `\'`                                        | apostrophe                                             |
      | `\?`                                        | question mark (used to avoid trigraphs)                |
      | `\\`                                        | backslash                                              |
+     | `\` + backtick                              | backtick                                               |
      | `\` + up to 3 octal digits                  |                                                        |
      | `\x` + any number of hex digits             |                                                        |
      | `\u` + 4 hex digits (Unicode BMP)           |                                                        |
@@ -109,6 +109,12 @@ config MyAppConfig {
      | Minute        | `m`    | `30m`         |                                    |
      | Second        | `s`    | `15s`         |                                    |
      | Millisecond   | `ms`   | `200ms`       |                                    |
+   - **Identifiers (Keys)**: `[a-zA-Z_][a-zA-Z0-9_]*` or content enclosed in backticks (`) using the same rules as string literals.
+     ```CSL
+     key: number;
+     `quotedKey1`: number;
+     R`delim(quotedKey2)delim`: number;
+     ```
 
 2. **Type System**
    - **Primitives**: `string`, `number`, `boolean`, `datetime`, `duration`.
