@@ -63,7 +63,7 @@ config MyAppConfig {
     // Dependency: If "metadata" exists, "version" must exist (no value check)
     requires metadata => version;
 
-    // Mixed dependency: If "services" has entries, "app_name" must match a regex
+    // Mixed dependency: If "services" exists, "app_name" must match a regex
     requires services => app_name @regex("^svc-.*");
   };
 }
@@ -97,7 +97,7 @@ config MyAppConfig {
      | `\u` + 4 hex digits (Unicode BMP)           |                                                        |
      | `\U` + 8 hex digits (Unicode astral planes) |                                                        |
      | any other invalid sequences                 | content without `\` (e.g., `\c` is interpreted as `c`) |
-   - **Date-times**: ISO 8601 data-times.
+   - **Date-times**: ISO 8601 date-times.
    - **Durations**: ISO 8601 durations or the following shorthand format:
      | Unit          | Suffix | Example       | Notes                              |
      |---------------|--------|---------------|------------------------------------|
@@ -241,17 +241,17 @@ config MyAppConfig {
          // Require at least one key in "target"
          validate count_keys(target) > 0;
 
-         // All target keys must match a regex (e.g., lowercase/numbers)
+         // All keys in "target" must match a regex (e.g., lowercase/numbers)
          validate all_keys(target) match "^[a-z0-9_]+$";
        };
      }
      ```
 
-11. **Batch Key Validation**:
+11. **Batch Key Validation**
    - `count_keys(table)` – Returns the number of keys in a table.
    - `all_keys(table)` – Returns the keys of a table for validation (e.g., regex checks).
    - `wildcard_keys(table)` – Returns the wildcard keys of a table for validation (e.g., regex checks).
-   - Annotaions for string can be used with `all_keys` and `wildcard_keys` to validate the name of the keys.
+   - Annotations for string can be used with `all_keys` and `wildcard_keys` to validate the name of the keys.
 
 12. **Subset Validation**
    Use `subset` function in the `constraints` block:
@@ -293,9 +293,8 @@ config MyAppConfig {
        insecure_mode: boolean;
 
        constraints {
-         // ✅ Valid: Root constraints can reference root keys (`insecure_mode`)
-         // and nested keys via their **absolute path** (`database.ssl`).
-         // (Root is the only scope allowed to reference nested keys globally.)
+         // ✅ Valid: Constraints can reference keys in the same block (`insecure_mode`)
+         // and nested keys via their **relative path** (`database.ssl`).
          conflicts database.ssl with insecure_mode;
        };
      }
@@ -359,13 +358,13 @@ config MyAppConfig {
    - If omitted, validates by **full object equality** (rarely useful, so tools may warn).
 
 3. **Composite Keys**:
-   - Provide multiple properties (e.g., `[region, env]`). Both must match.
+   - Provide multiple properties (e.g., `[region, env]`). All must match.
 
 4. **Edge Cases**:
    - Empty `source_array` is always valid.
    - Empty `target_array` + non-empty `source_array` → invalid.
 
-5. **Tooling Behavior**
+5. **Tooling Behavior**:
    - **Validation**:
      - Ensure `properties` exist in both `source_array` and `target_array` schemas.
      - Error if `properties` are specified for primitive arrays.

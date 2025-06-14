@@ -1,6 +1,7 @@
 <html>
   <head>
-    <link rel="stylesheet" type="text/css" href="https://unpkg.com/vditor/dist/index.css" />
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/vditor/dist/index.css">
     <script src="https://unpkg.com/vditor/dist/method.min.js"></script>
     <style>
       :root {
@@ -197,7 +198,7 @@ config MyAppConfig {
     // Dependency: If &quot;metadata&quot; exists, &quot;version&quot; must exist (no value check)
     requires metadata =&gt; version;
 
-    // Mixed dependency: If &quot;services&quot; has entries, &quot;app_name&quot; must match a regex
+    // Mixed dependency: If &quot;services&quot; exists, &quot;app_name&quot; must match a regex
     requires services =&gt; app_name @regex(&quot;^svc-.*&quot;);
   };
 }
@@ -328,7 +329,7 @@ config MyAppConfig {
               </table>
             </li>
             <li>
-              <p><strong>Date-times</strong>: ISO 8601 data-times.</p>
+              <p><strong>Date-times</strong>: ISO 8601 date-times.</p>
             </li>
             <li>
               <p>
@@ -750,7 +751,7 @@ debug: boolean | &quot;verbose&quot;; // Boolean or the literal &quot;verbose&qu
     // Require at least one key in &quot;target&quot;
     validate count_keys(target) &gt; 0;
 
-    // All target keys must match a regex (e.g., lowercase/numbers)
+    // All keys in &quot;target&quot; must match a regex (e.g., lowercase/numbers)
     validate all_keys(target) match &quot;^[a-z0-9_]+$&quot;;
   };
 }
@@ -758,7 +759,7 @@ debug: boolean | &quot;verbose&quot;; // Boolean or the literal &quot;verbose&qu
         </li>
       </ul>
       <ol start="11">
-        <li><strong>Batch Key Validation</strong>:</li>
+        <li><strong>Batch Key Validation</strong></li>
       </ol>
       <ul>
         <li>
@@ -774,7 +775,7 @@ debug: boolean | &quot;verbose&quot;; // Boolean or the literal &quot;verbose&qu
           table for validation (e.g., regex checks).
         </li>
         <li>
-          Annotaions for string can be used with <code>all_keys</code> and
+          Annotations for string can be used with <code>all_keys</code> and
           <code>wildcard_keys</code> to validate the name of the keys.
         </li>
       </ul>
@@ -848,9 +849,8 @@ debug: boolean | &quot;verbose&quot;; // Boolean or the literal &quot;verbose&qu
   insecure_mode: boolean;
 
   constraints {
-    // ✅ Valid: Root constraints can reference root keys (`insecure_mode`)
-    // and nested keys via their **absolute path** (`database.ssl`).
-    // (Root is the only scope allowed to reference nested keys globally.)
+    // ✅ Valid: Constraints can reference keys in the same block (`insecure_mode`)
+    // and nested keys via their **relative path** (`database.ssl`).
     conflicts database.ssl with insecure_mode;
   };
 }
@@ -976,7 +976,7 @@ debug: boolean | &quot;verbose&quot;; // Boolean or the literal &quot;verbose&qu
           <ul>
             <li>
               Provide multiple properties (e.g., <code>[region, env]</code>).
-              Both must match.
+              All must match.
             </li>
           </ul>
         </li>
@@ -991,7 +991,7 @@ debug: boolean | &quot;verbose&quot;; // Boolean or the literal &quot;verbose&qu
           </ul>
         </li>
         <li>
-          <p><strong>Tooling Behavior</strong></p>
+          <p><strong>Tooling Behavior</strong>:</p>
           <ul>
             <li>
               <strong>Validation</strong>:
