@@ -1,0 +1,7 @@
+config CompositeSubset {
+  allowed: { region: string; env: string; }[];
+  selected: { region: string; env: string; }[];
+  constraints {
+    validate subset(selected, allowed, [region, env]);
+  };
+}

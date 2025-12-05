@@ -1,0 +1,11 @@
+config StringAnn {
+  username: string @min_length(3) @max_length(16) @regex("^[a-zA-Z0-9_]+$");
+  path: string @start_with("/usr/") @end_with(".conf");
+  containsTest: string @contain("temp");
+  email: string @format(email);
+  uid: string @format(uuid);
+  ipv4addr: string @format(ipv4);
+  ipv6addr: string @format(ipv6);
+  homepage: string @format(url);
+  phoneNum: string @format(phone);
+}

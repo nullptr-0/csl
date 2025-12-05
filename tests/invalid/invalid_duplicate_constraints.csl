@@ -1,0 +1,5 @@
+config InvalidDupConstraints {
+  a: boolean;
+  constraints { validate a; };
+  constraints { validate !a; };
+}

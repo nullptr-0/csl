@@ -1,0 +1,5 @@
+config Basic {
+  name: string;
+  enabled: boolean;
+  retries?: number;
+}

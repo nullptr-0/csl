@@ -1,0 +1,3 @@
+config InvalidRawStringDelim {
+  s: string = R"ABCDEFGHIJKLMNOPQ(content)ABCDEFGHIJKLMNOPQ";
+}

@@ -1,0 +1,15 @@
+config ConstraintsBasic {
+  a: boolean;
+  b: boolean;
+  c?: number;
+  nested: {
+    port: number;
+    ssl: boolean;
+  };
+
+  constraints {
+    conflicts nested.ssl with b;
+    requires a => c;
+    validate (nested.port > 1024 && a) || (!b);
+  };
+}

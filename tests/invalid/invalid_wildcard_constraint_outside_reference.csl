@@ -1,0 +1,11 @@
+config InvalidWildcardScope {
+  app_name: string;
+  target: {
+    *: {
+      lib_path: string;
+      constraints {
+        validate exists(app_name);
+      };
+    };
+  };
+}

@@ -1,0 +1,9 @@
+config InvalidScope {
+  log_level: "debug" | "info";
+  logger: {
+    format: string;
+    constraints {
+      conflicts format with log_level;
+    };
+  };
+}

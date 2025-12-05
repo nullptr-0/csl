@@ -1,213 +1,703 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Config Schema Language (CSL)</title>
-    <style>
-        :root {
-            --primary: #2b5797;
-            --secondary: #4ec9b0;
-            --dark: #1e1e1e;
-            --light: #f8f9fa;
-        }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Config Schema Language (CSL)</title>
+  <meta name="description" content="CSL is a concise, type-safe language for describing configuration schemas with declarative validation and first-class tooling (LSP, Node/WASM, VS Code, IntelliJ)." />
+  <link rel="icon" href="./CSL-no-bg.png" type="image/png" />
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', system-ui, sans-serif;
-        }
+  <style>
+    :root{
+      color-scheme: light dark;
+      --bg: #f6f8ff;
+      --surface: #ffffff;
+      --surface-2: rgba(255,255,255,0.72);
+      --text: #0f172a;
+      --muted: #475569;
+      --border: rgba(15,23,42,0.12);
+      --shadow: 0 18px 45px rgba(2,6,23,0.12);
+      --shadow-soft: 0 10px 25px rgba(2,6,23,0.08);
+      --brand: #2b5797;
+      --accent: #4ec9b0;
+      --radius: 18px;
+      --radius-sm: 12px;
+      --code-bg: rgba(2,6,23,0.06);
+      --code-text: #0b1220;
+      --container: 1120px;
+      --ring: 0 0 0 4px rgba(78,201,176,0.25);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+    }
 
-        body {
-            line-height: 1.6;
-            color: var(--dark);
-        }
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg: #0b1020;
+        --surface: rgba(17,24,39,0.92);
+        --surface-2: rgba(17,24,39,0.72);
+        --text: #e5e7eb;
+        --muted: #a7b0c0;
+        --border: rgba(229,231,235,0.14);
+        --shadow: 0 18px 50px rgba(0,0,0,0.45);
+        --shadow-soft: 0 10px 28px rgba(0,0,0,0.35);
+        --code-bg: rgba(255,255,255,0.06);
+        --code-text: #e5e7eb;
+        --ring: 0 0 0 4px rgba(78,201,176,0.25);
+      }
+    }
 
-        .hero {
-            background: var(--primary);
-            color: white;
-            padding: 4rem 1rem;
-            text-align: center;
-        }
+    *{ box-sizing:border-box; }
+    html,body{ min-height:100%; }
+    body{
+      margin:0;
+      font-family: var(--sans);
+      color: var(--text);
+      background:
+        radial-gradient(900px 520px at 15% -10%,
+          rgba(78,201,176,0.40) 0%,
+          rgba(78,201,176,0.18) 38%,
+          rgba(78,201,176,0.00) 72%),
+        radial-gradient(820px 520px at 85% 0%,
+          rgba(43,87,151,0.45) 0%,
+          rgba(43,87,151,0.20) 40%,
+          rgba(43,87,151,0.00) 74%),
+        radial-gradient(900px 740px at 70% 110%,
+          rgba(78,201,176,0.22) 0%,
+          rgba(78,201,176,0.10) 45%,
+          rgba(78,201,176,0.00) 76%),
+        var(--bg);
+      line-height:1.65;
+      background-attachment: fixed;
+    }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem 1rem;
-        }
+    a{ color: inherit; text-decoration: none; }
+    a:hover{ text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
 
-        .nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 0;
-            position: relative;
-        }
+    .container{ width:min(var(--container), calc(100% - 2rem)); margin:0 auto; }
 
-        .nav a {
-            color: white;
-            text-decoration: none;
-            margin: 0 1rem;
-            font-weight: 500;
-        }
+    /* Header / nav */
+    .site-header{
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      backdrop-filter: blur(14px);
+      background: linear-gradient(to bottom, rgba(255,255,255,0.65), rgba(255,255,255,0.25));
+      border-bottom: 1px solid var(--border);
+    }
+    @media (prefers-color-scheme: dark){
+      .site-header{
+        background: linear-gradient(to bottom, rgba(11,16,32,0.75), rgba(11,16,32,0.35));
+      }
+    }
+    .nav{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 0.85rem 0;
+      gap: 1rem;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap: 0.6rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      text-decoration:none;
+    }
+    .logo{
+      width: 34px; height: 34px;
+      border-radius: 10px;
+      background: conic-gradient(from 210deg, var(--accent), var(--brand), var(--accent));
+      box-shadow: var(--shadow-soft);
+      display:inline-block;
+    }
+    .nav-links{
+      display:flex;
+      align-items:center;
+      gap: 0.85rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .nav-links a{
+      padding: 0.45rem 0.65rem;
+      border-radius: 10px;
+      color: var(--muted);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .nav-links a:hover{
+      background: rgba(78,201,176,0.10);
+      color: var(--text);
+      text-decoration:none;
+      border: 1px solid rgba(78,201,176,0.3);
+    }
+    .nav-links a[data-active="true"]{
+      background: rgba(78,201,176,0.18);
+      color: var(--text);
+      border: 1px solid rgba(78,201,176,0.3);
+    }
+    .nav-cta{
+      display:flex; align-items:center; gap: 0.6rem;
+    }
+    .hamburger{
+      display:none;
+      padding: 0.55rem 0.65rem;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.40);
+      border: 1px solid var(--border);
+      color: var(--text);
+      cursor:pointer;
+    }
+    @media (prefers-color-scheme: dark){
+      .hamburger{ background: rgba(17,24,39,0.55); }
+    }
 
-        .nav-links {
-            display: flex;
-        }
+    /* Mobile nav */
+    @media (max-width: 880px){
+      .hamburger{ display:inline-flex; align-items:center; justify-content:center; }
+      .nav-links{
+        display:none;
+        position:absolute;
+        top: 64px;
+        right: 0;
+        left: 0;
+        padding: 0.75rem;
+        border-bottom: 1px solid var(--border);
+        background: rgba(255,255,255,0.85);
+        backdrop-filter: blur(14px);
+      }
+      @media (prefers-color-scheme: dark){
+        .nav-links{ background: rgba(11,16,32,0.85); }
+      }
+      .nav-links[data-open="true"]{ display:flex; }
+      .nav-links a{ width: 100%; }
+    }
 
-        .hamburger {
-            display: none;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
+    /* Buttons */
+    .button{
+      display:inline-flex; align-items:center; justify-content:center; gap: 0.5rem;
+      padding: 0.85rem 1.1rem; border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0);
+      background: linear-gradient(135deg, var(--accent), var(--brand));
+      color: white; font-weight: 800; text-decoration:none;
+      box-shadow: var(--shadow-soft);
+      transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease;
+      white-space: nowrap;
+    }
+    .button:hover{ text-decoration:none; transform: translateY(-1px); filter: brightness(1.05); box-shadow: var(--shadow); }
+    .button:focus-visible{ outline:none; box-shadow: var(--shadow), var(--ring); }
+    .button.secondary{ background: transparent; color: var(--text); border: 1px solid var(--border); box-shadow:none; }
+    .button.secondary:hover{ background: rgba(255,255,255,0.55); }
+    @media (prefers-color-scheme: dark){ .button.secondary:hover{ background: rgba(17,24,39,0.65); } }
+    .button.small{ padding: 0.55rem 0.8rem; border-radius: 12px; font-weight: 800; font-size: 0.95rem; }
 
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin: 3rem 0;
-        }
+    /* Hero */
+    .hero{
+      padding: 2.1rem 0 0.25rem;
+    }
+    .hero-card{
+      border-radius: calc(var(--radius) + 6px);
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, var(--surface-2), rgba(255,255,255,0.42));
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    @media (prefers-color-scheme: dark){
+      .hero-card{
+        background: linear-gradient(180deg, rgba(17,24,39,0.85), rgba(17,24,39,0.65));
+      }
+    }
+    .hero-top{
+      padding: 1.75rem 1.3rem 0.9rem;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: 1rem;
+    }
+    .hero-kicker{
+      display:inline-flex;
+      gap: 0.5rem;
+      align-items:center;
+      padding: 0.35rem 0.65rem;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.55);
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+    @media (prefers-color-scheme: dark){
+      .hero-kicker{ background: rgba(17,24,39,0.6); }
+    }
 
-        .feature-card {
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
-        }
+    .hero-main{
+      position: relative;
+      padding: 0 1.3rem 1.4rem;
+    }
+    .carousel{
+      width: 100%;
+      overflow:hidden;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.5);
+    }
+    @media (prefers-color-scheme: dark){
+      .carousel{ background: rgba(17,24,39,0.55); }
+    }
+    .slides{
+      display:flex;
+      transition: transform 650ms cubic-bezier(0.22, 1, 0.36, 1);
+      will-change: transform;
+    }
+    .slide{
+      flex: 0 0 100%;
+      padding: 2.3rem 1.35rem 2.1rem;
+      display:grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 1.2rem;
+      align-items:center;
+    }
+    @media (max-width: 880px){
+      .slide{ grid-template-columns: 1fr; padding: 2rem 1.15rem; }
+    }
+    .hero-title{
+      font-size: clamp(2.1rem, 3.6vw, 3.2rem);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      margin: 0 0 0.6rem;
+    }
+    .hero-subtitle{
+      margin: 0 0 1.1rem;
+      color: var(--muted);
+      font-size: clamp(1.03rem, 1.35vw, 1.2rem);
+      max-width: 58ch;
+    }
+    .chips{
+      display:flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 0.55rem;
+      margin-top: 0.75rem;
+    }
+    .chip{
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.45);
+      padding: 0.35rem 0.6rem;
+      border-radius: 999px;
+      font-weight: 700;
+      color: var(--muted);
+      font-size: 0.9rem;
+      white-space: nowrap;
+    }
+    @media (prefers-color-scheme: dark){
+      .chip{ background: rgba(17,24,39,0.55); }
+    }
+    .slide-actions{
+      display:flex;
+      gap: 0.7rem;
+      flex-wrap: wrap;
+      align-items:center;
+      margin-top: 1rem;
+    }
+    .hero-aside{
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.45);
+      padding: 1rem 1rem 0.85rem;
+    }
+    @media (prefers-color-scheme: dark){
+      .hero-aside{ background: rgba(17,24,39,0.55); }
+    }
+    .aside-title{
+      margin:0 0 0.65rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+    .aside-list{
+      margin: 0;
+      padding-left: 1.1rem;
+      color: var(--muted);
+      font-weight: 600;
+    }
 
-        .feature-card:hover {
-            transform: translateY(-5px);
-        }
+    .indicators{
+      display:flex;
+      justify-content:center;
+      gap: 0.55rem;
+      padding: 0.9rem 0 1.15rem;
+    }
+    .dot{
+      width: 10px; height: 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.55);
+      cursor:pointer;
+    }
+    @media (prefers-color-scheme: dark){
+      .dot{ background: rgba(17,24,39,0.55); }
+    }
+    .dot[aria-selected="true"]{
+      background: linear-gradient(135deg, var(--accent), var(--brand));
+      border-color: transparent;
+      transform: scale(1.1);
+    }
 
-        code {
-            background: var(--dark);
-            color: var(--secondary);
-            padding: 0.2em 0;
-            border-radius: 4px;
-            font-family: 'Consolas', monospace;
-        }
+    /* Sections */
+    section{ padding: 2.6rem 0; }
+    .section-title{
+      font-size: clamp(1.5rem, 2.2vw, 2rem);
+      letter-spacing: -0.02em;
+      margin: 0 0 0.75rem;
+    }
+    .section-subtitle{
+      color: var(--muted);
+      margin: 0 0 1.25rem;
+      max-width: 70ch;
+      font-weight: 600;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 1rem;
+    }
+    .card{
+      grid-column: span 4;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,0.65);
+      box-shadow: var(--shadow-soft);
+      padding: 1.1rem 1.05rem 1rem;
+      transition: transform 140ms ease, box-shadow 140ms ease;
+    }
+    @media (prefers-color-scheme: dark){
+      .card{ background: rgba(17,24,39,0.65); }
+    }
+    .card:hover{
+      transform: translateY(-1px);
+      box-shadow: var(--shadow);
+    }
+    .card h3{
+      margin: 0 0 0.25rem;
+      font-size: 1.05rem;
+      letter-spacing: -0.01em;
+    }
+    .card p{
+      margin: 0.35rem 0 0;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .card code{
+      font-family: var(--mono);
+      background: var(--code-bg);
+      color: var(--code-text);
+      padding: 0.15rem 0.35rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      font-weight: 700;
+      font-size: 0.92em;
+    }
+    @media (max-width: 900px){
+      .card{ grid-column: span 6; }
+    }
+    @media (max-width: 640px){
+      .card{ grid-column: span 12; }
+    }
 
-        .code-sample {
-            background: var(--dark);
-            color: white;
-            padding: 2rem;
-            border-radius: 8px;
-            margin: 2rem 0;
-            overflow-x: auto;
-        }
+    /* Code sample */
+    .code-block{
+      position: relative;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.55);
+      box-shadow: var(--shadow-soft);
+      overflow:hidden;
+    }
+    @media (prefers-color-scheme: dark){
+      .code-block{ background: rgba(17,24,39,0.6); }
+    }
+    pre{
+      margin: 0;
+      padding: 1.2rem 1.1rem;
+      overflow:auto;
+      font-family: var(--mono);
+      font-size: 0.95rem;
+      line-height: 1.55;
+      color: var(--code-text);
+    }
+    .code-toolbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 0.75rem;
+      padding: 0.65rem 0.8rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.65);
+    }
+    @media (prefers-color-scheme: dark){
+      .code-toolbar{ background: rgba(17,24,39,0.7); }
+    }
+    .code-toolbar .hint{
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 0.92rem;
+    }
+    .icon{
+      width: 1.05em;
+      height: 1.05em;
+      display:inline-block;
+      vertical-align: -0.15em;
+    }
 
-        /* Hide scrollbar for Chrome, Safari and Opera */
-        .code-sample::-webkit-scrollbar {
-            display: none;
-        }
+    /* Get started tabs */
+    .tabs{
+      display:flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin: 1.3rem 0 0.9rem;
+    }
+    .tab{
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.5);
+      color: var(--muted);
+      font-weight: 900;
+      border-radius: 999px;
+      padding: 0.45rem 0.75rem;
+      cursor:pointer;
+    }
+    @media (prefers-color-scheme: dark){
+      .tab{ background: rgba(17,24,39,0.65); }
+    }
+    .tab[aria-selected="true"]{
+      color: var(--text);
+      background: rgba(78,201,176,0.20);
+      border-color: rgba(78,201,176,0.45);
+    }
+    .tabpanels > [role="tabpanel"]{ display:none; }
+    .tabpanels > [role="tabpanel"][data-active="true"]{ display:block; }
 
-        /* Hide scrollbar for IE, Edge and Firefox */
-        .code-sample {
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
-        }
+    /* Footer */
+    footer{
+      padding: 2.5rem 0 3rem;
+      color: var(--muted);
+    }
+    .footer-card{
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.55);
+      box-shadow: var(--shadow-soft);
+      padding: 1.2rem 1.1rem;
+      display:flex;
+      justify-content:space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      align-items:center;
+    }
+    @media (prefers-color-scheme: dark){
+      .footer-card{ background: rgba(17,24,39,0.65); }
+    }
+    .footer-links{
+      display:flex;
+      gap: 0.85rem;
+      flex-wrap: wrap;
+      font-weight: 700;
+    }
 
-        .cta {
-            text-align: center;
-            margin: 4rem 0;
-        }
-
-        .button {
-            background: var(--secondary);
-            color: white;
-            padding: 1rem 2rem;
-            border-radius: 5px;
-            text-decoration: none;
-            font-weight: bold;
-            display: inline-block;
-        }
-
-        @media (max-width: 768px) {
-            .nav-links {
-                display: none;
-                width: 100%;
-                flex-direction: column;
-                position: absolute;
-                top: 100%;
-                left: 0;
-                background: var(--primary);
-                padding: 1rem;
-                z-index: 1000;
-            }
-
-                .nav-links.active {
-                    display: flex;
-                }
-
-            .hamburger {
-                display: block;
-            }
-
-            .nav-links a {
-                padding: 0.5rem 0;
-                border-bottom: 1px solid rgba(255,255,255,0.1);
-            }
-        }
-    </style>
-    <script>
-        function toggleMenu() {
-            const navLinks = document.getElementById('navLinks');
-            navLinks.classList.toggle('active');
-        }
-    </script>
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      .slides{ transition:none; }
+      .card, .button{ transition:none; }
+    }
+  </style>
 </head>
+
 <body>
-    <header class="hero">
-        <nav class="nav container">
-            <div>
-                <a href="#"><strong>CSL</strong></a>
-            </div>
-            <button class="hamburger" onclick="toggleMenu()">☰</button>
-            <div class="nav-links" id="navLinks">
-                <a href="#features">Features</a>
-                <a href="./docs.html">Documentation</a>
-                <a href="https://github.com/nullptr-0/csl/issues">Feedback</a>
-            </div>
-        </nav>
-        
-        <div class="container">
-            <h1 style="font-size: 3.5rem; margin-top: 2rem; margin-bottom: 1rem;">Config Schema Language</h1>
-            <p style="font-size: 1.5rem; margin-bottom: 2rem;">
-                Type-Safe Configuration Schema with Human-Friendly Syntax
-            </p>
-            <div class="cta">
-                <a href="#get-started" class="button">Get Started</a>
-            </div>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav" aria-label="Primary navigation">
+        <a class="brand" href="./index.html" aria-label="CSL home">
+          <img class="logo" src="./CSL.png" alt="CSL logo" aria-hidden="true">
+          <span>CSL</span>
+        </a>
+
+        <button class="hamburger" type="button" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks" onclick="toggleMenu(this)">☰</button>
+
+        <div id="navLinks" class="nav-links" data-open="false">
+          <a href="#features">Features</a>
+          <a href="#tooling">Tooling</a>
+          <a href="#get-started">Get started</a>
+          <a href="./docs.html">Docs</a>
+          <a href="./examples.html">Examples</a>
+          <a href="https://github.com/nullptr-0/csl" target="_blank" rel="noopener">GitHub</a>
         </div>
-    </header>
 
-    <main class="container">
-        <section id="features">
-            <h2 style="text-align: center; margin: 4rem 0 2rem;">Why Choose CSL?</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <h3>🔒 Type Safety</h3>
-                    <p>Enforce types with familiar syntax: <code>string</code>, <code>number[]</code>, <code>"dev"|"prod"</code></p>
+        <div class="nav-cta">
+          <a class="button small secondary" href="./docs.html">Read docs</a>
+          <a class="button small" href="https://github.com/nullptr-0/csl" target="_blank" rel="noopener">Repo</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="hero">
+      <div class="hero-card" data-hero-carousel>
+        <div class="hero-top">
+          <div>
+            <div class="hero-kicker">⚡ Config schemas with structure, readability, and tooling</div>
+          </div>
+          <div class="hero-kicker" title="Language Server Highlights">LSP-first • Node/WASM • Cross-IDE</div>
+        </div>
+
+        <div class="hero-main">
+          <div class="carousel" role="region" aria-roledescription="carousel" aria-label="CSL highlights">
+            <div class="slides" data-hero-slides>
+              <!-- Slide 1 -->
+              <section class="slide" role="group" aria-label="CSL overview">
+                <div>
+                  <h1 class="hero-title">Config Schema Language</h1>
+                  <p class="hero-subtitle">
+                    A concise, type-safe language for describing configuration schemas — with inline validation, expressive constraints, and editor-grade tooling.
+                  </p>
+                  <div class="chips" aria-label="Highlights">
+                    <span class="chip">Types & unions</span>
+                    <span class="chip">Annotations like <code>@regex</code></span>
+                    <span class="chip">Constraint blocks</span>
+                    <span class="chip">Wildcard keys <code>*:</code></span>
+                    <span class="chip">Opaque <code>any{}</code> / <code>any[]</code></span>
+                  </div>
+
+                  <div class="slide-actions">
+                    <a class="button" href="#get-started">Get started</a>
+                    <a class="button secondary" href="./docs.html">Read the spec</a>
+                    <a class="button secondary" href="./examples.html">See examples</a>
+                  </div>
                 </div>
-                <div class="feature-card">
-                    <h3>🔍 Rich Validation</h3>
-                    <p>Inline annotations like <code>@range(1-100)</code> and constraint blocks for complex rules</p>
+
+                <aside class="hero-aside" aria-label="What CSL gives you">
+                  <p class="aside-title">Why teams use CSL</p>
+                  <ul class="aside-list">
+                    <li>Readable schemas with real validation</li>
+                    <li>Fast feedback: errors & suggestions in-editor</li>
+                    <li>One schema, many consumers (CLI, LSP, docs)</li>
+                  </ul>
+                </aside>
+              </section>
+
+              <!-- Slide 2 -->
+              <section class="slide" role="group" aria-label="IDE integrations">
+                <div>
+                  <h2 class="hero-title" style="font-size: clamp(1.9rem, 3.1vw, 2.7rem);">First-class IDE support</h2>
+                  <p class="hero-subtitle">
+                    CSL ships with a language server, plus official integrations for VS Code and IntelliJ—diagnostics, completion, hover docs, rename, references, and more.
+                  </p>
+
+                  <div class="chips" aria-label="Editor features">
+                    <span class="chip">✨ Semantic highlighting</span>
+                    <span class="chip">🧠 Completion</span>
+                    <span class="chip">🔎 Hover docs</span>
+                    <span class="chip">🧹 Diagnostics</span>
+                    <span class="chip">🧭 Go to definition</span>
+                    <span class="chip">🔁 Rename & references</span>
+                  </div>
+
+                  <div class="slide-actions">
+                    <a class="button" href="https://github.com/nullptr-0/csl" target="_blank" rel="noopener">Browse repo</a>
+                    <a class="button secondary" href="https://github.com/nullptr-0/csl/issues" target="_blank" rel="noopener">Report issues</a>
+                  </div>
                 </div>
-                <div class="feature-card">
-                    <h3>🧩 Flexible Structures</h3>
-                    <p>Nested tables, wildcard keys (<code>*: type</code>), and <code>any</code> types</p>
+
+                <aside class="hero-aside" aria-label="HTML docs export">
+                  <p class="aside-title">Bonus: HTML docs export</p>
+                  <ul class="aside-list">
+                    <li>Context action: “Generate CSL HTML Docs”</li>
+                    <li>Outputs an <code>index.html</code> you can publish</li>
+                  </ul>
+                </aside>
+              </section>
+
+              <!-- Slide 3 -->
+              <section class="slide" role="group" aria-label="Cross-platform usage">
+                <div>
+                  <h2 class="hero-title" style="font-size: clamp(1.9rem, 3.1vw, 2.7rem);">Cross‑platform by design</h2>
+                  <p class="hero-subtitle">
+                    Run CSL as a native C++ binary or via a Node wrapper backed by the WASM build. Use the LSP over stdio, sockets, or named pipes.
+                  </p>
+
+                  <div class="chips" aria-label="Runtime options">
+                    <span class="chip">🧱 Native C++ CLI</span>
+                    <span class="chip">🧩 Node + WASM</span>
+                    <span class="chip">🔌 LSP: stdio / socket / pipe</span>
+                    <span class="chip">🧪 Regression tests</span>
+                  </div>
+
+                  <div class="slide-actions">
+                    <a class="button" href="#get-started">Build & run</a>
+                    <a class="button secondary" href="https://github.com/nullptr-0/csl" target="_blank" rel="noopener">See implementation</a>
+                  </div>
                 </div>
+
+                <aside class="hero-aside" aria-label="Typical commands">
+                  <p class="aside-title">Typical commands</p>
+                  <ul class="aside-list">
+                    <li><code>csl --test schema.csl</code></li>
+                    <li><code>csl --langsvr --stdio</code></li>
+                    <li><code>node ./out/csl.js --test schema.csl</code></li>
+                  </ul>
+                </aside>
+              </section>
             </div>
-        </section>
+          </div>
 
-        <section class="code-sample">
-            <pre><code>config AppConfig {
+          <div class="indicators" data-hero-indicators role="tablist" aria-label="Carousel pages"></div>
+        </div>
+      </div>
+    </div>
+
+    <section id="features">
+      <h2 class="section-title">What CSL covers well</h2>
+      <p class="section-subtitle">
+        CSL combines “what shape is this config?” with “what rules must it follow?” — in one schema your tools can understand.
+      </p>
+
+      <div class="grid">
+        <div class="card">
+          <h3>🔒 Type safety</h3>
+          <p>Primitives, tables, arrays, and unions like <code>"dev" | "prod"</code>.</p>
+        </div>
+        <div class="card">
+          <h3>🔍 Inline validation</h3>
+          <p>Annotations such as <code>@min(1)</code>, <code>@regex("...")</code>, <code>@format(email)</code>.</p>
+        </div>
+        <div class="card">
+          <h3>⚖️ Constraints</h3>
+          <p>Describe relationships with <code>conflicts</code>, <code>requires</code>, and <code>validate …</code>.</p>
+        </div>
+        <div class="card">
+          <h3>🧩 Flexible areas</h3>
+          <p>Use wildcard keys <code>*:</code> and opaque types <code>any{}</code>/<code>any[]</code> to “leave room” safely.</p>
+        </div>
+        <div class="card">
+          <h3>🧠 Tooling‑ready</h3>
+          <p>The language server powers completion, hover, diagnostics, rename, and navigation.</p>
+        </div>
+        <div class="card">
+          <h3>🌍 Multiple runtimes</h3>
+          <p>Native CLI for speed, or Node + WASM for portability and integration.</p>
+        </div>
+      </div>
+    </section>
+
+    <section aria-label="Example schema">
+      <h2 class="section-title">Quick taste</h2>
+      <p class="section-subtitle">A small schema showing types, annotations, defaults, and constraints.</p>
+
+      <div class="code-block" data-copy-scope>
+        <div class="code-toolbar">
+          <div class="hint">Example: <strong>AppConfig</strong> (CSL)</div>
+          <button class="button small secondary" type="button" data-copy-btn aria-label="Copy code">Copy</button>
+        </div>
+        <pre><code data-copy-text>config AppConfig {
   app_name: string;
-  version: string @regex("^\\d+\\.\\d+");
+  version: string @regex("^\\d+\\.\\d+(\\.\\d+)?$");
   environment: "dev" | "prod" = "dev";
 
   database: {
@@ -216,119 +706,317 @@
     ssl?: boolean;
   };
 
+  insecure_mode?: boolean;
+
   constraints {
     conflicts database.ssl with insecure_mode;
-    requires database.ssl => environment == "prod";
-  }
+    requires database.ssl =&gt; environment == "prod";
+  };
 }</code></pre>
-        </section>
+      </div>
+    </section>
 
-        <section id="tooling">
-            <h2 style="text-align: center; margin: 4rem 0;">First-Class Tooling</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <h3>💡 IDE Support</h3>
-                    <p>Autocomplete, linting, and inline documentation</p>
-                </div>
-                <div class="feature-card">
-                    <h3>✅ Validation CLI</h3>
-                    <p>Instant config validation with rich error reporting</p>
-                </div>
-                <div class="feature-card">
-                    <h3>📚 Docs Generator</h3>
-                    <p>Automatically generate human-readable documentation</p>
-                </div>
-            </div>
-        </section>
-        
-        <section id="get-started" class="container" style="padding: 4rem 0;">
-            <div class="container">
-                <h2 style="text-align: center; margin-bottom: 3rem;">Get Started with CSL</h2>
-                
-                <div class="features-grid">
-                    <!-- Step 1 -->
-                    <div class="feature-card">
-                        <div style="margin-bottom: 1.5rem;">
-                            <span style="background: var(--secondary); color: white; padding: 0.5rem 1rem; border-radius: 20px;">Step 1</span>
-                        </div>
-                        <h3>Build From Source</h3>
-                        <p>Build a CSL implementation:</p>
-                        <div class="code-sample" style="padding: 1rem; margin: 1rem 0;">
-                            <pre><code>git clone https://github.com/nullptr-0/toml.git
-cd toml
-cmake -B build -S .
-cmake --build build</code></pre>
-                        </div>
-                    </div>
+    <section id="tooling">
+      <h2 class="section-title">Tooling built on LSP</h2>
+      <p class="section-subtitle">
+        CSL’s core implementation includes parsing + validation, a language server, and a docs generator—wired into editor extensions.
+      </p>
 
-                    <!-- Step 2 -->
-                    <div class="feature-card">
-                        <div style="margin-bottom: 1.5rem;">
-                            <span style="background: var(--secondary); color: white; padding: 0.5rem 1rem; border-radius: 20px;">Step 2</span>
-                        </div>
-                        <h3>Create Your First Schema</h3>
-                        <p>Start with basic type definitions:</p>
-                        <div class="code-sample" style="padding: 1rem; margin: 1rem 0;">
-                            <pre><code>config AppConfig {
-  app_name: string;
-  port: number @range(1, 65535);
-  features: string[];
-}</code></pre>
-                        </div>
-                    </div>
-
-                    <!-- Step 3 -->
-                    <div class="feature-card">
-                        <div style="margin-bottom: 1.5rem;">
-                            <span style="background: var(--secondary); color: white; padding: 0.5rem 1rem; border-radius: 20px;">Step 3</span>
-                        </div>
-                        <h3>Validate Configurations</h3>
-                        <p>Check your configuration files:</p>
-                        <div class="code-sample" style="padding: 1rem; margin: 1rem 0;">
-                            <code>./build/toml --parse production.toml --validate config.csl</code>
-                        </div>
-                        <p style="font-size: 0.9em; color: #666;">
-                            Found a bug? Report in issues. <a href="https://github.com/nullptr-0/csl/issues" style="color: var(--primary);">CSL</a> | <a href="https://github.com/nullptr-0/toml/issues" style="color: var(--primary);">TOML</a>
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Quick Features -->
-                <div style="margin: 4rem 0; padding: 2rem; background: var(--light); border-radius: 8px;">
-                    <h3 style="text-align: center; margin-bottom: 2rem;">Key Features to Explore</h3>
-                    <div class="features-grid">
-                        <div class="feature-card">
-                            <h4>🔗 Type Unions</h4>
-                            <code>method: "GET" | "POST"</code>
-                        </div>
-                        <div class="feature-card">
-                            <h4>⚖️ Constraints</h4>
-                            <code>requires ssl => port == 443</code>
-                        </div>
-                        <div class="feature-card">
-                            <h4>🌐 Wildcards</h4>
-                            <code>*: { path: string }</code>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Next Steps -->
-                <div class="cta">
-                    <h3 style="margin-bottom: 1.5rem;">Ready for More?</h3>
-                    <a href="./docs.html" class="button">Explore Full Documentation</a>
-                    <p style="margin-top: 1.5rem;">
-                        <a href="./examples.html" style="color: var(--primary);">Real-world Examples ↗</a>
-                    </p>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <footer style="background: var(--light); padding: 3rem 0; margin-top: 4rem;">
-        <div class="container" style="text-align: center;">
-            <p>📄 Licensed under Apache 2.0 | 🐙 <a href="https://github.com/nullptr-0/csl" style="color: var(--primary);">GitHub</a></p>
-            <p style="margin-top: 1rem;">© 2025 CSL Project. Created by nullptr-0.</p>
+      <div class="grid">
+        <div class="card">
+          <h3>🧱 Native core (C++20)</h3>
+          <p>Fast CLI for parsing/validation plus an LSP server that can run over stdio, sockets, or named pipes.</p>
         </div>
+        <div class="card">
+          <h3>🧩 Node + WASM wrapper</h3>
+          <p>Portable CLI/LSP entrypoint for environments where shipping a native binary is hard.</p>
+        </div>
+        <div class="card">
+          <h3>🧠 VS Code extension</h3>
+          <p>Semantic highlighting, completion, hover docs, formatting, rename, and navigation.</p>
+        </div>
+        <div class="card">
+          <h3>🧠 IntelliJ plugin</h3>
+          <p>LSP-powered editing plus a built‑in “Generate CSL HTML Docs” action.</p>
+        </div>
+        <div class="card">
+          <h3>📚 Documentation</h3>
+          <p>Keep a schema and human-readable docs in sync—great for teams and reviewers.</p>
+        </div>
+        <div class="card">
+          <h3>🧪 Regression tests</h3>
+          <p>Run the bundled suite to validate changes and ensure consistent behavior across platforms.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="get-started">
+      <h2 class="section-title">Get started</h2>
+      <p class="section-subtitle">
+        Pick your path: native, Node/WASM, or an editor integration. All of them ultimately talk to the same language server.
+      </p>
+
+      <div class="tabs" role="tablist" aria-label="Get started tabs">
+        <button class="tab" role="tab" aria-selected="true" aria-controls="panel-native" id="tab-native" onclick="selectTab('native')">Native core</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="panel-node" id="tab-node" onclick="selectTab('node')">Node + WASM</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="panel-vscode" id="tab-vscode" onclick="selectTab('vscode')">VS Code</button>
+        <button class="tab" role="tab" aria-selected="false" aria-controls="panel-intellij" id="tab-intellij" onclick="selectTab('intellij')">IntelliJ</button>
+      </div>
+
+      <div class="tabpanels">
+        <div role="tabpanel" id="panel-native" data-active="true" aria-labelledby="tab-native">
+          <div class="code-block" data-copy-scope>
+            <div class="code-toolbar">
+              <div class="hint">Build native <strong>csl</strong> (from repo root)</div>
+              <button class="button small secondary" type="button" data-copy-btn>Copy</button>
+            </div>
+            <pre><code data-copy-text>git clone https://github.com/nullptr-0/csl.git
+cd csl
+cmake -B build -S impl/core -DCMAKE_BUILD_TYPE=Release
+cmake --build build</code></pre>
+          </div>
+
+          <div class="grid" style="margin-top: 1rem;">
+            <div class="card" style="grid-column: span 6;">
+              <h3>Test a schema</h3>
+              <p><code>path/to/csl --test path/to/schema.csl</code></p>
+            </div>
+            <div class="card" style="grid-column: span 6;">
+              <h3>Run the language server</h3>
+              <p><code>path/to/csl --langsvr --stdio</code> (or <code>--socket</code>/<code>--pipe</code>)</p>
+            </div>
+          </div>
+        </div>
+
+        <div role="tabpanel" id="panel-node" data-active="false" aria-labelledby="tab-node">
+          <div class="code-block" data-copy-scope>
+            <div class="code-toolbar">
+              <div class="hint">Build WASM + compile Node wrapper</div>
+              <button class="button small secondary" type="button" data-copy-btn>Copy</button>
+            </div>
+            <pre><code data-copy-text># Build the WASM module
+impl/core/BuildWasm Release
+
+# Then compile the Node wrapper
+cd impl/node
+npm install
+npm run compile</code></pre>
+          </div>
+
+          <div class="code-block" style="margin-top: 1rem;" data-copy-scope>
+            <div class="code-toolbar">
+              <div class="hint">Use the Node CLI wrapper</div>
+              <button class="button small secondary" type="button" data-copy-btn>Copy</button>
+            </div>
+            <pre><code data-copy-text>node ./out/csl.js --test path/to/schema.csl
+node ./out/csl.js --langsvr --stdio</code></pre>
+          </div>
+        </div>
+
+        <div role="tabpanel" id="panel-vscode" data-active="false" aria-labelledby="tab-vscode">
+          <div class="code-block" data-copy-scope>
+            <div class="code-toolbar">
+              <div class="hint">Build & package the extension</div>
+              <button class="button small secondary" type="button" data-copy-btn>Copy</button>
+            </div>
+            <pre><code data-copy-text># 1) Build the native core (Native core tab)
+# 2) Copy the resulting csl binary into:
+#    impl/extension/VSCode/core/
+
+cd impl/extension/VSCode
+npm install
+vsce package
+code --install-extension csl-0.0.1.vsix</code></pre>
+          </div>
+          <div class="grid" style="margin-top: 1rem;">
+            <div class="card" style="grid-column: span 12;">
+              <h3>Generate HTML docs</h3>
+              <p>Right‑click a <code>.csl</code> file → <strong>Generate CSL HTML Docs</strong> to export a browsable site (including <code>index.html</code>).</p>
+            </div>
+          </div>
+          <p class="section-subtitle" style="margin-top: 0.9rem;">
+            Tip: If LSP features don’t start, double-check that the <code>csl</code> binary exists under <code>impl/extension/VSCode/core/</code>.
+          </p>
+        </div>
+
+        <div role="tabpanel" id="panel-intellij" data-active="false" aria-labelledby="tab-intellij">
+          <div class="code-block" data-copy-scope>
+            <div class="code-toolbar">
+              <div class="hint">Build plugin & run in a sandbox IDE</div>
+              <button class="button small secondary" type="button" data-copy-btn>Copy</button>
+            </div>
+            <pre><code data-copy-text># 1) Build native csl (Native core tab)
+# 2) Copy the resulting binary into resources:
+#    impl/extension/IntelliJ/src/main/resources/bin/&lt;os&gt;/csl(.exe)
+
+cd impl/extension/IntelliJ
+./gradlew build
+./gradlew runIde</code></pre>
+          </div>
+          <div class="grid" style="margin-top: 1rem;">
+            <div class="card" style="grid-column: span 12;">
+              <h3>Generate HTML docs</h3>
+              <p>Right‑click a <code>.csl</code> file → <strong>Generate CSL HTML Docs</strong> to export a browsable site (including <code>index.html</code>).</p>
+            </div>
+          </div>
+          <p class="section-subtitle" style="margin-top: 0.9rem;">
+            Tip: If LSP features don’t start, double-check that the <code>csl</code> binary exists under <code>impl/extension/IntelliJ/src/main/resources/bin/&lt;os&gt;/</code>.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top: 1.5rem;">
+        <div class="card" style="grid-column: span 6;">
+          <h3>Read the full spec</h3>
+          <p>Everything from lexing rules to advanced constraint semantics lives in the docs page.</p>
+          <div style="margin-top: 0.85rem;">
+            <a class="button secondary" href="./docs.html">Open docs</a>
+          </div>
+        </div>
+        <div class="card" style="grid-column: span 6;">
+          <h3>Learn by example</h3>
+          <p>See how wildcard keys, unions, and constraints map to real-world formats.</p>
+          <div style="margin-top: 0.85rem;">
+            <a class="button secondary" href="./examples.html">Open examples</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="footer-card">
+        <div>
+          <strong>CSL</strong> • Apache 2.0 • © 2025
+          <div style="font-weight: 700; margin-top: 0.25rem;">Built by nullptr-0.</div>
+        </div>
+        <div class="footer-links">
+          <a href="./docs.html">Docs</a>
+          <a href="./examples.html">Examples</a>
+          <a href="https://github.com/nullptr-0/csl" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://github.com/nullptr-0/csl/issues" target="_blank" rel="noopener">Issues</a>
+        </div>
+      </div>
     </footer>
+  </main>
+
+  <script>
+    function toggleMenu(btn){
+      const nav = document.getElementById("navLinks");
+      const open = nav.getAttribute("data-open") === "true";
+      nav.setAttribute("data-open", String(!open));
+      btn.setAttribute("aria-expanded", String(!open));
+    }
+
+    // Tabs
+    function selectTab(name){
+      const tabs = ["native","node","vscode","intellij"];
+      tabs.forEach(t=>{
+        const tab = document.getElementById("tab-"+t);
+        const panel = document.getElementById("panel-"+t);
+        const isActive = t === name;
+        tab.setAttribute("aria-selected", String(isActive));
+        panel.setAttribute("data-active", String(isActive));
+      });
+      // close mobile menu after selection
+      const nav = document.getElementById("navLinks");
+      nav.setAttribute("data-open","false");
+      const hb = document.querySelector(".hamburger");
+      if (hb) hb.setAttribute("aria-expanded","false");
+    }
+
+    // Copy buttons
+    (function initCopy(){
+      const blocks = document.querySelectorAll("[data-copy-scope]");
+      blocks.forEach(scope=>{
+        const btn = scope.querySelector("[data-copy-btn]");
+        const code = scope.querySelector("[data-copy-text]");
+        if (!btn || !code) return;
+        btn.addEventListener("click", async ()=>{
+          const text = code.textContent || "";
+          try{
+            await navigator.clipboard.writeText(text);
+            const prev = btn.textContent;
+            btn.textContent = "Copied!";
+            btn.disabled = true;
+            setTimeout(()=>{ btn.textContent = prev; btn.disabled = false; }, 950);
+          }catch(e){
+            // Fallback
+            const range = document.createRange();
+            range.selectNodeContents(code);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+            document.execCommand("copy");
+            sel.removeAllRanges();
+          }
+        });
+      });
+    })();
+
+    // Carousel
+    (function initCarousel(){
+      const root = document.querySelector("[data-hero-carousel]");
+      if (!root) return;
+
+      const track = root.querySelector("[data-hero-slides]");
+      const indicators = root.querySelector("[data-hero-indicators]");
+      const slides = Array.from(track.children);
+      const total = slides.length;
+
+      let index = 0;
+      let timer = null;
+      const intervalMs = 5200;
+
+      function renderDots(){
+        indicators.innerHTML = "";
+        slides.forEach((_, i)=>{
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "dot";
+          b.setAttribute("role", "tab");
+          b.setAttribute("aria-label", "Go to slide " + (i+1));
+          b.setAttribute("aria-selected", i === index ? "true" : "false");
+          b.addEventListener("click", ()=> setIndex(i, true));
+          indicators.appendChild(b);
+        });
+      }
+
+      function setIndex(next, user){
+        index = (next + total) % total;
+        track.style.transform = "translateX(-" + (index * 100) + "%)";
+        const dots = indicators.querySelectorAll(".dot");
+        dots.forEach((d,i)=> d.setAttribute("aria-selected", i === index ? "true" : "false"));
+        if (user) restart();
+      }
+
+      function stop(){
+        if (timer) { clearInterval(timer); timer = null; }
+      }
+      function start(){
+        stop();
+        timer = setInterval(()=> setIndex(index + 1, false), intervalMs);
+      }
+      function restart(){
+        start();
+      }
+
+      renderDots();
+      setIndex(0, false);
+
+      const prefersReducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (!prefersReducedMotion) start();
+
+      root.addEventListener("mouseenter", stop);
+      root.addEventListener("mouseleave", ()=> { if (!prefersReducedMotion) start(); });
+
+      // Keyboard support (left/right)
+      root.addEventListener("keydown", (e)=>{
+        if (e.key === "ArrowLeft") { e.preventDefault(); setIndex(index - 1, true); }
+        if (e.key === "ArrowRight") { e.preventDefault(); setIndex(index + 1, true); }
+      });
+      root.tabIndex = 0;
+      root.setAttribute("aria-live", "polite");
+    })();
+  </script>
 </body>
 </html>

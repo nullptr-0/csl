@@ -1,0 +1,4 @@
+config Defaults {
+  env: "dev" | "staging" | "prod" = "dev";
+  retry?: number = 3;
+}

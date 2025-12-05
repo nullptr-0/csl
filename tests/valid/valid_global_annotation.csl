@@ -1,0 +1,4 @@
+config Deprecation {
+  old_key: number @deprecated("Use new_key instead.");
+  new_key: number;
+}

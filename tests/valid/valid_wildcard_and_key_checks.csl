@@ -1,0 +1,16 @@
+config Wildcard {
+  target: {
+    x86: { lib_path: string; };
+    *: {
+      lib_path: string @start_with("/usr/");
+      bin_path: string;
+      constraints {
+        validate lib_path @contain("temp") ? exists(bin_path) : true;
+      };
+    };
+  };
+  constraints {
+    validate count_keys(target) > 0;
+    validate all_keys(target) @regex("^[a-z0-9_]+$");
+  };
+}

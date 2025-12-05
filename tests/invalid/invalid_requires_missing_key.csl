@@ -1,0 +1,4 @@
+config InvalidRequiresMissing {
+  a?: boolean;
+  constraints { requires a => b; };
+}

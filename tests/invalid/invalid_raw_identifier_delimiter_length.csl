@@ -1,0 +1,3 @@
+config InvalidRawIdDelim {
+  R`ABCDEFGHIJKLMNOPQ(key)ABCDEFGHIJKLMNOPQ`: number;
+}

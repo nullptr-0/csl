@@ -1,0 +1,22 @@
+{
+  "name": "csl-node",
+  "version": "0.0.1",
+  "description": "NodeJS Wrapper For CSL Inplementation",
+  "main": "./out/csl.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nullptr-0/csl.git"
+  },
+  "author": "nullptr-0",
+  "bugs": {
+    "url": "https://github.com/nullptr-0/csl/issues"
+  },
+  "homepage": "https://github.com/nullptr-0/csl#readme",
+  "scripts": {
+    "compile": "tsc -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "typescript": "^5.9.3"
+  }
+}

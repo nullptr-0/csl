@@ -1,0 +1,9 @@
+config Comments {
+  // Leading comment
+  a: number; // Trailing comment
+  b?: string;
+  nested: {
+    // comment in block
+    c: boolean;
+  };
+}

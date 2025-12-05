@@ -1,0 +1,6 @@
+config SpecialNumbersSigned {
+  posInf: number = +inf;
+  negInf: number = -inf;
+  posNaN: number = +nan;
+  negNaN: number = -nan;
+}

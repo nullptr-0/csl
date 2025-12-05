@@ -1,0 +1,4 @@
+config AnyTypes {
+  meta?: any{};
+  raw?: any[];
+}

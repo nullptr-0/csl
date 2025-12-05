@@ -1,0 +1,11 @@
+config Time {
+  dt_utc: datetime = 2025-12-05T12:34:56Z;
+  dt_local_date: datetime = 2025-12-05;
+  dt_local_time: datetime = 12:34:56;
+  iso_duration: duration = P1Y2M3DT4H5M6S;
+  time_only_duration: duration = PT15M;
+  shorthand_year: duration = 1y;
+  shorthand_month: duration = 6mo;
+  shorthand_day: duration = 3d;
+  shorthand_ms: duration = 200ms;
+}

@@ -1,0 +1,3 @@
+config InvalidDuration {
+  d: duration = 5mm;
+}

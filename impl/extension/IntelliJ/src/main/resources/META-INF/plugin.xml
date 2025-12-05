@@ -1,0 +1,115 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+    <resource-bundle>messages.CslBundle</resource-bundle>
+    <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
+    <id>com.nullptr-0.csl</id>
+
+    <!-- Public plugin name should be written in Title Case.
+         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-name -->
+    <name>CSL Language Service</name>
+
+    <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
+    <vendor>nullptr-0</vendor>
+
+    <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
+         Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
+         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
+    <description><![CDATA[
+    A Language Service for the CSL language.
+  ]]></description>
+
+    <!-- Product and plugin compatibility requirements.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
+    <depends>com.intellij.modules.platform</depends>
+
+    <!-- Extension points defined by the plugin.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
+    <extensions defaultExtensionNs="com.intellij">
+        <fileType
+                name="CSL File"
+                implementationClass="com.nullptr0.csl.CslFileType"
+                fieldName="INSTANCE"
+                language="CSL"
+                extensions="csl"/>
+
+        <applicationInitializedListener implementation="com.nullptr0.csl.LSPApplicationInitializedListener"/>
+
+        <!-- register intellijLanguageClient as a Service OR as a plugin component (see readme)... -->
+        <applicationService serviceImplementation="org.wso2.lsp4intellij.IntellijLanguageClient"/>
+
+        <!-- register a listener on editor events, required for lsp file sync -->
+        <editorFactoryListener implementation="org.wso2.lsp4intellij.listeners.LSPEditorListener"/>
+        <fileDocumentManagerListener implementation="org.wso2.lsp4intellij.listeners.LSPFileDocumentManagerListener"/>
+
+        <!-- for displaying notifications by lsp -->
+        <notificationGroup id="cslLSP" displayType="STICKY_BALLOON"/>
+
+        <!-- for displaying progress notifications by lsp in the Event Log -->
+        <notificationGroup id="cslLSPProgressNotification" displayType="NONE" />
+
+        <!-- for displaying the statusbar icon -->
+        <statusBarWidgetFactory implementation="org.wso2.lsp4intellij.statusbar.LSPServerStatusWidgetFactory"
+                                id="org.wso2.lsp4intellij.statusbar.LSPServerStatusWidgetFactory"
+                                order="first" />
+
+        <!-- language line comments -->
+        <lang.commenter language="CSL" implementationClass="com.nullptr0.csl.CslCommenter"/>
+        <lang.parserDefinition language="CSL" implementationClass="com.nullptr0.csl.CslParserDefinition"/>
+        <lang.braceMatcher language="CSL" implementationClass="com.nullptr0.csl.CslPairedBraceMatcher"/>
+        <lang.syntaxHighlighterFactory language="CSL" implementationClass="com.nullptr0.csl.CslSyntaxHighlighterFactory"/>
+
+        <!-- needed for completion -->
+        <completion.contributor implementationClass="org.wso2.lsp4intellij.contributors.LSPCompletionContributor"
+                                id="org.wso2.lsp4intellij.contributors.LSPCompletionContributor" language="CSL"/>
+        <!-- needed for completion as well as signature help -->
+        <typedHandler implementation="org.wso2.lsp4intellij.listeners.LSPTypedHandler"
+                      id="LSPTypedHandler"/>
+        <typedHandler implementation="com.nullptr0.csl.CslQuoteTypedHandler"
+                      id="CslQuoteTypedHandler"/>
+
+        <!-- needed for code diagnostics -->
+        <externalAnnotator id="LSPAnnotator" language="CSL"
+                           implementationClass="org.wso2.lsp4intellij.contributors.annotator.LSPAnnotator"/>
+        <externalAnnotator id="CslSemanticTokensAnnotator" language="CSL"
+                           implementationClass="com.nullptr0.csl.CslSemanticTokensAnnotator"/>
+
+        <!-- needed for Workspace Symbols
+        <gotoSymbolContributor implementation="org.wso2.lsp4intellij.contributors.symbol.LSPSymbolContributor"
+                                     id="LSPSymbolContributor"/> -->
+
+        <!-- needed for renaming -->
+        <renameHandler implementation="org.wso2.lsp4intellij.contributors.rename.LSPRenameHandler" id="LSPRenameHandler" order="first"/>
+        <renamePsiElementProcessor implementation="org.wso2.lsp4intellij.contributors.rename.LSPRenameProcessor" id="LSPRenameProcessor" order="first"/>
+
+        <!-- needed for folding support -->
+        <lang.foldingBuilder language="CSL" implementationClass="org.wso2.lsp4intellij.contributors.LSPFoldingRangeProvider" id="LSPFoldingRangeProvider" order="first" />
+        <colorSettingsPage implementation="com.nullptr0.csl.CslColorSettingsPage"/>
+    </extensions>
+
+    <actions>
+        <!-- needed for hover -->
+        <action id="org.intellij.sdk.action.QuickDocAction" class="org.wso2.lsp4intellij.actions.LSPQuickDocAction">
+        </action>
+
+        <!-- needed for find references -->
+        <action class="org.wso2.lsp4intellij.actions.LSPReferencesAction" id="LSPFindUsages">
+             <keyboard-shortcut first-keystroke="shift alt F7" keymap="$default"/>
+        </action>
+
+        <!-- Generate CSL HTML Docs -->
+        <action id="com.nullptr0.csl.GenerateHtmlDocAction"
+                class="com.nullptr0.csl.GenerateHtmlDocAction"
+        >
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+        </action>
+    </actions>
+
+    <applicationListeners>
+        <!-- required for lsp file sync -->
+        <listener class="org.wso2.lsp4intellij.listeners.VFSListener"
+                  topic="com.intellij.openapi.vfs.VirtualFileListener"/>
+        <listener class="org.wso2.lsp4intellij.listeners.LSPProjectManagerListener"
+                  topic="com.intellij.openapi.project.ProjectManagerListener"/>
+    </applicationListeners>
+</idea-plugin>

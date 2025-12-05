@@ -1,0 +1,10 @@
+config Numbers {
+  dec_def: number = 123456;
+  float_def: number = 1.5e2;
+  hex_def: number = 0xDEAD_BEEF;
+  oct_def: number = 0o755;
+  bin_def: number = 0b1010_1010;
+  underscore_def: number = 1_000_000;
+  nan_def: number = nan;
+  inf_def: number = inf;
+}

@@ -1,0 +1,3 @@
+config InvalidDatetime {
+  d: datetime = 2025-13-01;
+}

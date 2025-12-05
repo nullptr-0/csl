@@ -1,0 +1,5 @@
+config InvalidWildcardSemicolon {
+  target: {
+    *: { lib_path: string }
+  };
+}

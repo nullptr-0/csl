@@ -1,0 +1,11 @@
+config WildcardNested {
+  target: {
+    *: {
+      lib_path: string;
+      bin_path?: string;
+      constraints {
+        validate lib_path @contain("temp") ? exists(bin_path) : true;
+      };
+    };
+  };
+}

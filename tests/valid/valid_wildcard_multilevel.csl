@@ -1,0 +1,9 @@
+config MultiWildcard {
+  platforms: {
+    *: {
+      arch: {
+        *: { lib_path: string; };
+      };
+    };
+  };
+}

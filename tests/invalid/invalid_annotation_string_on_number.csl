@@ -1,0 +1,3 @@
+config InvalidAnn2 {
+  age: number @regex("^[0-9]+$");
+}

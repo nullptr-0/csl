@@ -1,0 +1,29 @@
+config Full {
+  app_name: string;
+  version: string;
+  environment: "dev" | "staging" | "prod" = "dev";
+  timeout?: number @min(0) @max(60);
+
+  database: {
+    host: string;
+    port: number @range(1024, 65535);
+    ssl: boolean;
+    credentials?: { username: string; password: string; };
+  };
+
+  endpoints: { path: string; method: "GET" | "POST" | "PUT"; rate_limit?: number; }[];
+
+  metadata?: any{};
+  debug_flags?: any[];
+
+  services: { name: string; config?: any{}; }[];
+  raw_data?: any{}[];
+
+  constraints {
+    conflicts database.ssl with debug_flags;
+    requires database.credentials => environment == "prod";
+    validate environment == "prod" ? timeout > 10 : true;
+    requires metadata => version;
+    requires services => app_name @regex("^svc-.*");
+  };
+}

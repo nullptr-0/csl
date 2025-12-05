@@ -1,0 +1,4 @@
+config QuotedIds {
+  `simple-key`: number;
+  R`TAG(complex-key)TAG`: string;
+}

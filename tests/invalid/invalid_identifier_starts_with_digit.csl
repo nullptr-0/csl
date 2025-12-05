@@ -1,0 +1,3 @@
+config InvalidIdent {
+  1abc: number;
+}

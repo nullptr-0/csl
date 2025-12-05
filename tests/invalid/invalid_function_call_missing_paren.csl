@@ -1,0 +1,5 @@
+config InvalidFuncSyntax {
+  a: string[];
+  b: string[];
+  constraints { validate subset(a, b; };
+}

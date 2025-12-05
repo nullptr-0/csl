@@ -1,0 +1,3 @@
+config InvalidAnn1 {
+  name: string @min(10);
+}

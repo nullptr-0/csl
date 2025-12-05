@@ -1,0 +1,7 @@
+config ExistsFun {
+  a?: number;
+  b?: number;
+  constraints {
+    validate exists(a) ? exists(b) : true;
+  };
+}

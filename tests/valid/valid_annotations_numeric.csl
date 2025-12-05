@@ -1,0 +1,6 @@
+config NumericAnn {
+  limit: number @min(0) @max(100);
+  rangeVal: number @range(10, 20);
+  intOnly: number @int;
+  floatOnly: number @float;
+}

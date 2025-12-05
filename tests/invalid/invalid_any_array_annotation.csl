@@ -1,0 +1,3 @@
+config InvalidAnyArrayAnn {
+  list: any[] @min_length(1);
+}

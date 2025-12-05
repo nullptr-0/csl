@@ -1,0 +1,16 @@
+config Collections {
+  tags: string[];
+  nums: number[];
+  items: {
+    id: string;
+    qty: number;
+  }[];
+  nested: {
+    host: string;
+    port: number;
+    credentials?: {
+      username: string;
+      password: string;
+    };
+  };
+}

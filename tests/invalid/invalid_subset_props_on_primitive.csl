@@ -1,0 +1,7 @@
+config InvalidSubsetProps {
+  allowed: string[];
+  selected: string[];
+  constraints {
+    validate subset(selected, allowed, [id]);
+  };
+}

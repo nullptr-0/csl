@@ -1,0 +1,3 @@
+config InvalidUnion {
+  log_level: string | "info";
+}

@@ -1,150 +1,392 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Config Schema Language (CSL) Documentation</title>
-    <link rel="stylesheet" type="text/css" href="https://unpkg.com/vditor/dist/index.css">
-    <script src="https://unpkg.com/vditor/dist/method.min.js"></script>
-    <style>
-      :root {
-        --primary-color: #2b6cb0;
-        --secondary-color: #4a5568;
-        --code-bg: #f7fafc;
-        --border-color: #e2e8f0;
-      }
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CSL Documentation</title>
+  <meta name="description" content="Config Schema Language (CSL) specification, language rules, examples, and semantics." />
+  <link rel="icon" href="./CSL-no-bg.png" type="image/png" />
 
-      body {
-        font-family: system-ui, -apple-system, sans-serif;
-        line-height: 1.6;
-        color: var(--secondary-color);
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 2rem 1rem;
-        background: #f8fafc;
-      }
+  <!-- Vditor assets used for code/highlight rendering -->
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/vditor/dist/index.css">
+  <script src="https://unpkg.com/vditor/dist/method.min.js"></script>
 
-      h1, h2, h3 {
-        color: var(--primary-color);
-        margin: 2rem 0 1rem;
-        font-weight: 600;
-      }
+  <style>
+    :root{
+      color-scheme: light dark;
+      --bg: #f6f8ff;
+      --surface: #ffffff;
+      --surface-2: rgba(255,255,255,0.72);
+      --text: #0f172a;
+      --muted: #475569;
+      --border: rgba(15,23,42,0.12);
+      --shadow: 0 18px 45px rgba(2,6,23,0.12);
+      --shadow-soft: 0 10px 25px rgba(2,6,23,0.08);
+      --brand: #2b5797;
+      --accent: #4ec9b0;
+      --radius: 18px;
+      --radius-sm: 12px;
+      --container: 1120px;
+      --ring: 0 0 0 4px rgba(78,201,176,0.25);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+    }
 
-      h1 {
-        font-size: 2.5rem;
-        border-bottom: 3px solid var(--border-color);
-        padding-bottom: 1rem;
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg: #0b1020;
+        --surface: rgba(17,24,39,0.92);
+        --surface-2: rgba(17,24,39,0.72);
+        --text: #e5e7eb;
+        --muted: #a7b0c0;
+        --border: rgba(229,231,235,0.14);
+        --shadow: 0 18px 50px rgba(0,0,0,0.45);
+        --shadow-soft: 0 10px 28px rgba(0,0,0,0.35);
+        --ring: 0 0 0 4px rgba(78,201,176,0.25);
       }
+    }
 
-      .vditor-reset {
-        background: white;
-        padding: 2rem;
-        border-radius: 8px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    *{ box-sizing:border-box; }
+    html,body{ min-height:100%; }
+    body{
+      margin:0;
+      font-family: var(--sans);
+      color: var(--text);
+      background:
+        radial-gradient(900px 520px at 15% -10%,
+          rgba(78,201,176,0.40) 0%,
+          rgba(78,201,176,0.18) 38%,
+          rgba(78,201,176,0.00) 72%),
+        radial-gradient(820px 520px at 85% 0%,
+          rgba(43,87,151,0.45) 0%,
+          rgba(43,87,151,0.20) 40%,
+          rgba(43,87,151,0.00) 74%),
+        radial-gradient(900px 740px at 70% 110%,
+          rgba(78,201,176,0.22) 0%,
+          rgba(78,201,176,0.10) 45%,
+          rgba(78,201,176,0.00) 76%),
+        var(--bg);
+      line-height:1.65;
+      background-attachment: fixed;
+    }
+
+    a{ color: inherit; text-decoration: none; }
+    a:hover{ text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+
+    .container{ width:min(var(--container), calc(100% - 2rem)); margin:0 auto; }
+
+    /* Header / nav */
+    .site-header{
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      backdrop-filter: blur(14px);
+      background: linear-gradient(to bottom, rgba(255,255,255,0.65), rgba(255,255,255,0.25));
+      border-bottom: 1px solid var(--border);
+    }
+    @media (prefers-color-scheme: dark){
+      .site-header{
+        background: linear-gradient(to bottom, rgba(11,16,32,0.75), rgba(11,16,32,0.35));
       }
+    }
+    .nav{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 0.85rem 0;
+      gap: 1rem;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap: 0.6rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      text-decoration:none;
+    }
+    .logo{
+      width: 34px; height: 34px;
+      border-radius: 10px;
+      background: conic-gradient(from 210deg, var(--accent), var(--brand), var(--accent));
+      box-shadow: var(--shadow-soft);
+      display:inline-block;
+    }
+    .nav-links{
+      display:flex;
+      align-items:center;
+      gap: 0.85rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .nav-links a{
+      padding: 0.45rem 0.65rem;
+      border-radius: 10px;
+      color: var(--muted);
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .nav-links a:hover{
+      background: rgba(78,201,176,0.10);
+      color: var(--text);
+      text-decoration:none;
+      border: 1px solid rgba(78,201,176,0.3);
+    }
+    .nav-links a[data-active="true"]{
+      background: rgba(78,201,176,0.18);
+      color: var(--text);
+      border: 1px solid rgba(78,201,176,0.3);
+    }
+    .nav-cta{
+      display:flex; align-items:center; gap: 0.6rem;
+    }
+    .hamburger{
+      display:none;
+      padding: 0.55rem 0.65rem;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.40);
+      border: 1px solid var(--border);
+      color: var(--text);
+      cursor:pointer;
+    }
+    @media (prefers-color-scheme: dark){
+      .hamburger{ background: rgba(17,24,39,0.55); }
+    }
 
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin: 1.5rem 0;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-      }
-
-      th, td {
+    /* Mobile nav */
+    @media (max-width: 880px){
+      .hamburger{ display:inline-flex; align-items:center; justify-content:center; }
+      .nav-links{
+        display:none;
+        position:absolute;
+        top: 64px;
+        right: 0;
+        left: 0;
         padding: 0.75rem;
-        text-align: left;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--border);
+        background: rgba(255,255,255,0.85);
+        backdrop-filter: blur(14px);
       }
+      @media (prefers-color-scheme: dark){
+        .nav-links{ background: rgba(11,16,32,0.85); }
+      }
+      .nav-links[data-open="true"]{ display:flex; }
+      .nav-links a{ width: 100%; }
+    }
 
-      th {
-        background: var(--primary-color);
-        color: white;
-        font-weight: 500;
-      }
+    /* Buttons */
+    .button{
+      display:inline-flex; align-items:center; justify-content:center; gap: 0.5rem;
+      padding: 0.85rem 1.1rem; border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0);
+      background: linear-gradient(135deg, var(--accent), var(--brand));
+      color: white; font-weight: 800; text-decoration:none;
+      box-shadow: var(--shadow-soft);
+      transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease;
+      white-space: nowrap;
+    }
+    .button:hover{ text-decoration:none; transform: translateY(-1px); filter: brightness(1.05); box-shadow: var(--shadow); }
+    .button:focus-visible{ outline:none; box-shadow: var(--shadow), var(--ring); }
+    .button.secondary{ background: transparent; color: var(--text); border: 1px solid var(--border); box-shadow:none; }
+    .button.secondary:hover{ background: rgba(255,255,255,0.55); }
+    @media (prefers-color-scheme: dark){ .button.secondary:hover{ background: rgba(17,24,39,0.65); } }
+    .button.small{ padding: 0.55rem 0.8rem; border-radius: 12px; font-weight: 800; font-size: 0.95rem; }
 
-      tr:nth-child(even) {
-        background-color: #f8fafc;
-      }
+    /* docs layout */
+    main{ padding: 2rem 0 2.6rem; }
+    .docs-hero{
+      border-radius: calc(var(--radius) + 6px);
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, var(--surface-2), rgba(255,255,255,0.42));
+      box-shadow: var(--shadow);
+      padding: 1.4rem 1.2rem 1.1rem;
+    }
+    @media (prefers-color-scheme: dark){
+      .docs-hero{ background: linear-gradient(180deg, rgba(17,24,39,0.85), rgba(17,24,39,0.65)); }
+    }
+    .docs-hero h1{ margin:0; font-size: clamp(2rem, 3.2vw, 2.7rem); letter-spacing:-0.03em; }
+    .docs-hero p{ margin:0.55rem 0 0; color: var(--muted); font-weight: 650; max-width: 80ch; }
 
-      .warning {
-        background: #fff3cd;
-        border-left: 4px solid #ffc107;
-        padding: 1rem;
-        margin: 1.5rem 0;
-        border-radius: 4px;
-      }
+    .docs-shell{
+      margin-top: 1.2rem;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.65);
+      box-shadow: var(--shadow-soft);
+      overflow:hidden;
+    }
+    @media (prefers-color-scheme: dark){
+      .docs-shell{ background: rgba(17,24,39,0.65); }
+    }
+    .docs-inner{ padding: 1.2rem; }
 
-      .toc {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 8px;
-        margin: 2rem 0;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      }
+    /* Adapt existing generated doc pieces */
+    .toc{
+      margin: 0 0 1.1rem !important;
+      border-radius: var(--radius) !important;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.55) !important;
+      box-shadow: none !important;
+    }
+    @media (prefers-color-scheme: dark){
+      .toc{ background: rgba(17,24,39,0.65) !important; }
+    }
+    .toc h3{ margin-top: 0.2rem !important; }
+    .vditor-reset{
+      border-radius: var(--radius) !important;
+      background: rgba(255,255,255,0.55) !important;
+      border: 1px solid var(--border);
+      padding: 1.35rem !important;
+      box-shadow: none !important;
+    }
+    @media (prefers-color-scheme: dark){
+      .vditor-reset{ background: rgba(17,24,39,0.65) !important; }
+    }
 
-      .toc ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-      }
+    .vditor-reset h1, .vditor-reset h2, .vditor-reset h3{
+      color: var(--text) !important;
+      scroll-margin-top: 96px;
+    }
+    .vditor-reset p, .vditor-reset li{ color: var(--muted) !important; font-weight: 600; }
+    .vditor-reset code{ font-family: var(--mono); border-radius: 8px; color: var(--text); background-color: rgba(27, 31, 35, .05) !important; }
+    @media (prefers-color-scheme: dark){
+      .vditor-reset code{ background-color: rgba(66, 133, 244, .36) !important; }
+    }
 
-      .toc a {
-        color: var(--secondary-color);
-        text-decoration: none;
-        padding: 0.5rem;
-        display: block;
-        border-radius: 4px;
-        transition: all 0.2s;
+    .vditor-reset table{
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow:hidden;
+      box-shadow:none;
+      display: table;
+    }
+    .vditor-reset th{
+      background: linear-gradient(135deg, var(--accent), var(--brand)) !important;
+      color: white !important;
+      border-bottom: 1px solid rgba(255,255,255,0.14);
+    }
+    .vditor-reset tr:nth-child(even){
+      background-color: #fafbfc !important;
+    }
+    @media (prefers-color-scheme: dark){
+      .vditor-reset tr:nth-child(even){
+        background-color: #2f363d !important;
       }
+    }
+    .vditor-reset tr:nth-child(odd){
+      background-color: #fff !important;
+    }
+    @media (prefers-color-scheme: dark){
+      .vditor-reset tr:nth-child(odd){
+        background-color: #24292e !important;
+      }
+    }
 
-      .toc a:hover {
-        background: var(--code-bg);
-        color: var(--primary-color);
-      }
+    /* Back to top */
+    .backtop{
+      position: fixed;
+      right: 1rem;
+      bottom: 1rem;
+      z-index: 1001;
+      display:none;
+    }
+    .backtop[data-show="true"]{ display:inline-flex; }
 
-      @media (max-width: 768px) {
-        body {
-          padding: 1rem;
-        }
-        
-        .vditor-reset {
-          padding: 1rem;
-        }
-        
-        h1 {
-          font-size: 2rem;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="toc">
-      <h3>Table of Contents</h3>
-      <ul>
-        <li><a href="#example">CSL Example</a></li>
-        <li><a href="#features">Key Features</a></li>
-        <li><a href="#semantics">Semantic Rules</a></li>
-        <li><a href="#scoping">Scoping Rules</a></li>
-        <li><a href="#subset"><code>subset</code> Key Rules</a></li>
-        <li><a href="#tooling">Tooling Integration</a></li>
-        <li><a href="#why">Why CSL Works</a></li>
-      </ul>
+    /* Footer */
+    footer{
+      padding: 2.5rem 0 3rem;
+      color: var(--muted);
+    }
+    .footer-card{
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.55);
+      box-shadow: var(--shadow-soft);
+      padding: 1.2rem 1.1rem;
+      display:flex;
+      justify-content:space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      align-items:center;
+    }
+    @media (prefers-color-scheme: dark){
+      .footer-card{ background: rgba(17,24,39,0.65); }
+    }
+    .footer-links{
+      display:flex;
+      gap: 0.85rem;
+      flex-wrap: wrap;
+      font-weight: 700;
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      .button{ transition:none; }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav" aria-label="Primary navigation">
+        <a class="brand" href="./index.html" aria-label="CSL home">
+          <img class="logo" src="./CSL.png" alt="CSL logo" aria-hidden="true">
+          <span>CSL</span>
+        </a>
+
+        <button class="hamburger" type="button" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks" onclick="toggleMenu(this)">☰</button>
+
+        <div id="navLinks" class="nav-links" data-open="false">
+          <a href="./index.html#features">Features</a>
+          <a href="./index.html#tooling">Tooling</a>
+          <a href="./index.html#get-started">Get started</a>
+          <a href="./docs.html" data-active="true">Docs</a>
+          <a href="./examples.html">Examples</a>
+          <a href="https://github.com/nullptr-0/csl" target="_blank" rel="noopener">GitHub</a>
+        </div>
+
+        <div class="nav-cta">
+          <a class="button small secondary" href="./docs.html">Read docs</a>
+          <a class="button small" href="https://github.com/nullptr-0/csl" target="_blank" rel="noopener">Repo</a>
+        </div>
+      </nav>
     </div>
-    <div class="vditor-reset" id="preview">
-      <h1><strong>Config Schema Language (CSL)</strong></h1>
+  </header>
+
+  <main class="container">
+    <div class="docs-hero">
+      <h1>CSL language reference</h1>
       <p>
-        <strong>Config Schema Language (CSL)</strong> is a language that
-        describes the schema of a configuration. It combines readability with
-        formal structure. The syntax takes inspiration from TypeScript, C++ and
-        Rust, using familiar braces and type annotations while adding
-        declarative constraints.
+        Everything you need: syntax, types, annotations, constraints, scoping, and semantics — designed to be the “single source of truth” for CSL.
       </p>
-      <hr />
-      <h3 id="example"><strong>Config Schema Language (CSL) Example</strong></h3>
-      <pre><code class="language-CSL">// Root configuration structure
+    </div>
+
+    <div class="docs-shell">
+      <div class="docs-inner">
+        <div class="toc">
+          <h3>Table of Contents</h3>
+          <ul>
+            <li><a href="#example">CSL Example</a></li>
+            <li><a href="#features">Key Features</a></li>
+            <li><a href="#semantics">Semantic Rules</a></li>
+            <li><a href="#scoping">Scoping Rules</a></li>
+            <li><a href="#subset"><code>subset</code> Key Rules</a></li>
+            <li><a href="#tooling">Tooling Integration</a></li>
+            <li><a href="#why">Why CSL Works</a></li>
+          </ul>
+        </div>
+        <div class="vditor-reset" id="preview">
+          <h1><strong>Config Schema Language (CSL)</strong></h1>
+          <p>
+            <strong>Config Schema Language (CSL)</strong> is a language that
+            describes the schema of a configuration. It combines readability with
+            formal structure. The syntax takes inspiration from TypeScript, C++ and
+            Rust, using familiar braces and type annotations while adding
+            declarative constraints.
+          </p>
+          <hr />
+          <h3 id="example"><strong>Config Schema Language (CSL) Example</strong></h3>
+          <pre><code class="language-CSL">// Root configuration structure
 config MyAppConfig {
   // Basic key-value pairs (mandatory by default)
   app_name: string;
@@ -206,500 +448,500 @@ config MyAppConfig {
   };
 }
 </code></pre>
-      <hr />
-      <h3 id="features"><strong>Key Features</strong></h3>
-      <ol>
-        <li>
-          <p><strong>Token Format</strong></p>
-          <ul>
+          <hr />
+          <h3 id="features"><strong>Key Features</strong></h3>
+          <ol>
             <li>
-              <p>
-                <strong>Comments</strong>:
-                <code>//</code> marks the rest of the line as a comment, except when inside a string.
-              </p>
-            </li>
-            <li>
-              <p>
-                <strong>Numbers</strong>: Decimal numbers (e.g.,
-                <code>123</code>, <code>3.14</code> and <code>1e5</code>),
-                binary numbers (start with <code>0b</code>), octal numbers
-                (start with <code>0o</code>), hexadecimal numbers (start with
-                <code>0x</code>) and special numbers (<code>nan</code>,
-                <code>+nan</code>, <code>-nan</code>, <code>inf</code>,
-                <code>+inf</code> and <code>-inf</code>). Use a
-                <code>_</code> to enhance readability (e.g.,
-                <code>1_000_000</code>).
-              </p>
-            </li>
-            <li>
-              <p>
-                <strong>Booleans</strong>: <code>true</code>/<code>false</code>.
-              </p>
-            </li>
-            <li>
-              <p>
-                <strong>Strings</strong>: Normal string literals
-                (<code>&quot;...&quot;</code>, where escape sequences are
-                allowed) and raw string literals
-                (<code>R&quot;delim(...)delim&quot;</code>, where the delimiter
-                matches
-                <code
-                  >[a-zA-Z0-9!\&quot;#%&amp;'*+,\-.\/:;&lt;=&gt;?\[\]^_{|}~]{0,16}</code
-                >). The valid escape sequences in normal strings are:
-              </p>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Escape Sequence</th>
-                    <th>Notes</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td><code>\a</code></td>
-                    <td><code>\x07</code> alert (bell)</td>
-                  </tr>
-                  <tr>
-                    <td><code>\b</code></td>
-                    <td><code>\x08</code> backspace</td>
-                  </tr>
-                  <tr>
-                    <td><code>\t</code></td>
-                    <td><code>\x09</code> horizonal tab</td>
-                  </tr>
-                  <tr>
-                    <td><code>\n</code></td>
-                    <td><code>\x0A</code> newline (or line feed)</td>
-                  </tr>
-                  <tr>
-                    <td><code>\v</code></td>
-                    <td><code>\x0B</code> vertical tab</td>
-                  </tr>
-                  <tr>
-                    <td><code>\f</code></td>
-                    <td><code>\x0C</code> form feed</td>
-                  </tr>
-                  <tr>
-                    <td><code>\r</code></td>
-                    <td><code>\x0D</code> carriage return</td>
-                  </tr>
-                  <tr>
-                    <td><code>\&quot;</code></td>
-                    <td>quotation mark</td>
-                  </tr>
-                  <tr>
-                    <td><code>\'</code></td>
-                    <td>apostrophe</td>
-                  </tr>
-                  <tr>
-                    <td><code>\?</code></td>
-                    <td>question mark (used to avoid trigraphs)</td>
-                  </tr>
-                  <tr>
-                    <td><code>\\</code></td>
-                    <td>backslash</td>
-                  </tr>
-                  <tr>
-                    <td><code>\`</code></td>
-                    <td>backtick</td>
-                  </tr>
-                  <tr>
-                    <td><code>\</code> + up to 3 octal digits</td>
-                    <td></td>
-                  </tr>
-                  <tr>
-                    <td><code>\x</code> + any number of hex digits</td>
-                    <td></td>
-                  </tr>
-                  <tr>
-                    <td><code>\u</code> + 4 hex digits (Unicode BMP)</td>
-                    <td></td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <code>\U</code> + 8 hex digits (Unicode astral planes)
-                    </td>
-                    <td></td>
-                  </tr>
-                  <tr>
-                    <td>any other invalid sequences</td>
-                    <td>
-                      content without <code>\</code> (e.g., <code>\c</code> is
-                      interpreted as <code>c</code>)
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </li>
-            <li>
-              <p><strong>Date-times</strong>: ISO 8601 date-times.</p>
-            </li>
-            <li>
-              <p>
-                <strong>Durations</strong>: ISO 8601 durations or the following
-                shorthand format:
-              </p>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Unit</th>
-                    <th>Suffix</th>
-                    <th>Example</th>
-                    <th>Notes</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>Year</td>
-                    <td><code>y</code></td>
-                    <td><code>1y</code></td>
-                    <td></td>
-                  </tr>
-                  <tr>
-                    <td>Month</td>
-                    <td><code>mo</code></td>
-                    <td><code>6mo</code></td>
-                    <td>Avoids conflict with <code>m</code> (minute).</td>
-                  </tr>
-                  <tr>
-                    <td>Week</td>
-                    <td><code>w</code></td>
-                    <td><code>2w</code></td>
-                    <td></td>
-                  </tr>
-                  <tr>
-                    <td>Day</td>
-                    <td><code>d</code></td>
-                    <td><code>3d</code></td>
-                    <td></td>
-                  </tr>
-                  <tr>
-                    <td>Hour</td>
-                    <td><code>h</code></td>
-                    <td><code>4h</code></td>
-                    <td></td>
-                  </tr>
-                  <tr>
-                    <td>Minute</td>
-                    <td><code>m</code></td>
-                    <td><code>30m</code></td>
-                    <td></td>
-                  </tr>
-                  <tr>
-                    <td>Second</td>
-                    <td><code>s</code></td>
-                    <td><code>15s</code></td>
-                    <td></td>
-                  </tr>
-                  <tr>
-                    <td>Millisecond</td>
-                    <td><code>ms</code></td>
-                    <td><code>200ms</code></td>
-                    <td></td>
-                  </tr>
-                </tbody>
-              </table>
-            </li>
-            <li>
-              <p>
-                <strong>Identifiers (Keys)</strong>:
-                <code>[a-zA-Z_][a-zA-Z0-9_]*</code> or content enclosed in backticks (<code>`</code>) using the same rules as string literals.
-              <pre><code class="language-CSL">key: number;
+              <p><strong>Token Format</strong></p>
+              <ul>
+                <li>
+                  <p>
+                    <strong>Comments</strong>:
+                    <code>//</code> marks the rest of the line as a comment, except when inside a string.
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    <strong>Numbers</strong>: Decimal numbers (e.g.,
+                    <code>123</code>, <code>3.14</code> and <code>1e5</code>),
+                    binary numbers (start with <code>0b</code>), octal numbers
+                    (start with <code>0o</code>), hexadecimal numbers (start with
+                    <code>0x</code>) and special numbers (<code>nan</code>,
+                    <code>+nan</code>, <code>-nan</code>, <code>inf</code>,
+                    <code>+inf</code> and <code>-inf</code>). Use a
+                    <code>_</code> to enhance readability (e.g.,
+                    <code>1_000_000</code>).
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    <strong>Booleans</strong>: <code>true</code>/<code>false</code>.
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    <strong>Strings</strong>: Normal string literals
+                    (<code>&quot;...&quot;</code>, where escape sequences are
+                    allowed) and raw string literals
+                    (<code>R&quot;delim(...)delim&quot;</code>, where the delimiter
+                    matches
+                    <code
+                      >[a-zA-Z0-9!\&quot;#%&amp;'*+,\-.\/:;&lt;=&gt;?\[\]^_{|}~]{0,16}</code
+                    >). The valid escape sequences in normal strings are:
+                  </p>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Escape Sequence</th>
+                        <th>Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><code>\a</code></td>
+                        <td><code>\x07</code> alert (bell)</td>
+                      </tr>
+                      <tr>
+                        <td><code>\b</code></td>
+                        <td><code>\x08</code> backspace</td>
+                      </tr>
+                      <tr>
+                        <td><code>\t</code></td>
+                        <td><code>\x09</code> horizonal tab</td>
+                      </tr>
+                      <tr>
+                        <td><code>\n</code></td>
+                        <td><code>\x0A</code> newline (or line feed)</td>
+                      </tr>
+                      <tr>
+                        <td><code>\v</code></td>
+                        <td><code>\x0B</code> vertical tab</td>
+                      </tr>
+                      <tr>
+                        <td><code>\f</code></td>
+                        <td><code>\x0C</code> form feed</td>
+                      </tr>
+                      <tr>
+                        <td><code>\r</code></td>
+                        <td><code>\x0D</code> carriage return</td>
+                      </tr>
+                      <tr>
+                        <td><code>\&quot;</code></td>
+                        <td>quotation mark</td>
+                      </tr>
+                      <tr>
+                        <td><code>\'</code></td>
+                        <td>apostrophe</td>
+                      </tr>
+                      <tr>
+                        <td><code>\?</code></td>
+                        <td>question mark (used to avoid trigraphs)</td>
+                      </tr>
+                      <tr>
+                        <td><code>\\</code></td>
+                        <td>backslash</td>
+                      </tr>
+                      <tr>
+                        <td><code>\`</code></td>
+                        <td>backtick</td>
+                      </tr>
+                      <tr>
+                        <td><code>\</code> + up to 3 octal digits</td>
+                        <td></td>
+                      </tr>
+                      <tr>
+                        <td><code>\x</code> + any number of hex digits</td>
+                        <td></td>
+                      </tr>
+                      <tr>
+                        <td><code>\u</code> + 4 hex digits (Unicode BMP)</td>
+                        <td></td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <code>\U</code> + 8 hex digits (Unicode astral planes)
+                        </td>
+                        <td></td>
+                      </tr>
+                      <tr>
+                        <td>any other invalid sequences</td>
+                        <td>
+                          content without <code>\</code> (e.g., <code>\c</code> is
+                          interpreted as <code>c</code>)
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </li>
+                <li>
+                  <p><strong>Date-times</strong>: ISO 8601 date-times.</p>
+                </li>
+                <li>
+                  <p>
+                    <strong>Durations</strong>: ISO 8601 durations or the following
+                    shorthand format:
+                  </p>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Unit</th>
+                        <th>Suffix</th>
+                        <th>Example</th>
+                        <th>Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Year</td>
+                        <td><code>y</code></td>
+                        <td><code>1y</code></td>
+                        <td></td>
+                      </tr>
+                      <tr>
+                        <td>Month</td>
+                        <td><code>mo</code></td>
+                        <td><code>6mo</code></td>
+                        <td>Avoids conflict with <code>m</code> (minute).</td>
+                      </tr>
+                      <tr>
+                        <td>Week</td>
+                        <td><code>w</code></td>
+                        <td><code>2w</code></td>
+                        <td></td>
+                      </tr>
+                      <tr>
+                        <td>Day</td>
+                        <td><code>d</code></td>
+                        <td><code>3d</code></td>
+                        <td></td>
+                      </tr>
+                      <tr>
+                        <td>Hour</td>
+                        <td><code>h</code></td>
+                        <td><code>4h</code></td>
+                        <td></td>
+                      </tr>
+                      <tr>
+                        <td>Minute</td>
+                        <td><code>m</code></td>
+                        <td><code>30m</code></td>
+                        <td></td>
+                      </tr>
+                      <tr>
+                        <td>Second</td>
+                        <td><code>s</code></td>
+                        <td><code>15s</code></td>
+                        <td></td>
+                      </tr>
+                      <tr>
+                        <td>Millisecond</td>
+                        <td><code>ms</code></td>
+                        <td><code>200ms</code></td>
+                        <td></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </li>
+                <li>
+                  <p>
+                    <strong>Identifiers (Keys)</strong>:
+                    <code>[a-zA-Z_][a-zA-Z0-9_]*</code> or content enclosed in backticks (<code>`</code>) using the same rules as string literals.
+                  <pre><code class="language-CSL">key: number;
 `quotedKey1`: number;
 R`delim(quotedKey2)delim`: number;
 </code></pre>
-              </p>
-            </li>
-          </ul>
-        </li>
-        <li>
-          <p><strong>Type System</strong></p>
-          <ul>
-            <li>
-              <p>
-                <strong>Primitives</strong>: <code>string</code>,
-                <code>number</code>, <code>boolean</code>,
-                <code>datetime</code>, <code>duration</code>.
-              </p>
+                  </p>
+                </li>
+              </ul>
             </li>
             <li>
-              <p>
-                <strong>Enums</strong>:
-                <code>&quot;GET&quot; | &quot;POST&quot;</code> (union of
-                literals).
-              </p>
-            </li>
-            <li>
-              <p>
-                <strong>Tables</strong>:
-                <code>{ key: type; ... }</code> (nestable objects).
-              </p>
-            </li>
-            <li>
-              <p>
-                <strong>Arrays</strong>: <code>type[]</code> (e.g.,
-                <code>string[]</code>, <code>{...}[]</code>).
-              </p>
-            </li>
-            <li>
-              <p>
-                <strong>Union Type</strong>:<br />
-                Use the | operator to allow multiple types or literals.
-              </p>
-              <pre><code class="language-CSL">port: number | string;  // Number or string
+              <p><strong>Type System</strong></p>
+              <ul>
+                <li>
+                  <p>
+                    <strong>Primitives</strong>: <code>string</code>,
+                    <code>number</code>, <code>boolean</code>,
+                    <code>datetime</code>, <code>duration</code>.
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    <strong>Enums</strong>:
+                    <code>&quot;GET&quot; | &quot;POST&quot;</code> (union of
+                    literals).
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    <strong>Tables</strong>:
+                    <code>{ key: type; ... }</code> (nestable objects).
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    <strong>Arrays</strong>: <code>type[]</code> (e.g.,
+                    <code>string[]</code>, <code>{...}[]</code>).
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    <strong>Union Type</strong>:<br />
+                    Use the | operator to allow multiple types or literals.
+                  </p>
+                  <pre><code class="language-CSL">port: number | string;  // Number or string
 debug: boolean | &quot;verbose&quot;; // Boolean or the literal &quot;verbose&quot;
 </code></pre>
-              <p>
-                Specifying a type that a literal in the union has is not
-                allowed.
-              </p>
-              <pre><code class="language-CSL">config Example {
+                  <p>
+                    Specifying a type that a literal in the union has is not
+                    allowed.
+                  </p>
+                  <pre><code class="language-CSL">config Example {
   // ❌ Invalid: &quot;info&quot; is a string literal
   log_level: string | &quot;info&quot;;
 }
 </code></pre>
-            </li>
-          </ul>
-        </li>
-        <li>
-          <p><strong>Optionality</strong></p>
-          <ul>
-            <li>Mandatory keys: <code>key: type;</code></li>
-            <li>Optional keys: <code>key?: type;</code></li>
-          </ul>
-        </li>
-        <li>
-          <p><strong>Annotations</strong> (Inline Validation)</p>
-          <ul>
-            <li>
-              There are two types of annotations: local annotations and global
-              annotations.
+                </li>
+              </ul>
             </li>
             <li>
-              Local annotations:
+              <p><strong>Optionality</strong></p>
+              <ul>
+                <li>Mandatory keys: <code>key: type;</code></li>
+                <li>Optional keys: <code>key?: type;</code></li>
+              </ul>
+            </li>
+            <li>
+              <p><strong>Annotations</strong> (Inline Validation)</p>
               <ul>
                 <li>
-                  Local annotations only apply to a primitive type or an
-                  expression.
+                  There are two types of annotations: local annotations and global
+                  annotations.
                 </li>
                 <li>
-                  <code>@min(10)</code>, <code>@max(100)</code> – Numeric
-                  bounds. Applies only to number type.
-                </li>
-                <li>
-                  <code>@range(10, 100)</code> – Numeric range. Applies only to
-                  number type.
-                </li>
-                <li>
-                  <code>@int</code>, <code>@float</code> – Numeric type. Applies
-                  only to number type.
-                </li>
-                <li>
-                  <code>@regex(&quot;^[a-z]+$&quot;)</code> – Regex for strings.
-                  Applies only to strings type.
-                </li>
-                <li>
-                  <code>@start_with(&quot;/usr/&quot;)</code> – Starts-with
-                  assertion for strings. Applies only to strings type.
-                </li>
-                <li>
-                  <code>@end_with(&quot;.csl&quot;)</code> – Ends-with assertion
-                  for strings. Applies only to strings type.
-                </li>
-                <li>
-                  <code>@contain(&quot;temp&quot;)</code> – Contains assertion
-                  for strings. Applies only to strings type.
-                </li>
-                <li>
-                  <code>@min_length(10)</code>, <code>@max_length(100)</code>,
-                  <code>@length(50)</code> – String length assertion. Applies
-                  only to strings type.
-                </li>
-                <li>
-                  <code>@format(email)</code> – Built-in formats. Applies only
-                  to strings type. Available formats:
+                  Local annotations:
                   <ul>
                     <li>
-                      email:
-                      <code
-                        >(?:[a-z0-9!#$%&amp;'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&amp;'*+/=?^_`{|}~-]+)*|&quot;(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*&quot;)@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])</code
-                      >
+                      Local annotations only apply to a primitive type or an
+                      expression.
                     </li>
                     <li>
-                      uuid:
-                      <code
-                        >([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})</code
-                      >
+                      <code>@min(10)</code>, <code>@max(100)</code> – Numeric
+                      bounds. Applies only to number type.
                     </li>
                     <li>
-                      ipv4:
-                      <code
-                        >(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])</code
-                      >
+                      <code>@range(10, 100)</code> – Numeric range. Applies only to
+                      number type.
                     </li>
                     <li>
-                      ipv6:
-                      <code
-                        >(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?::[0-9a-fA-F]{1,4}){1,6}|:((?::[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]+|::(ffff(:0{1,4}){0,1}:){0,1}(25[0-5]|(2[0-4][0-9]|(1[01][0-9]|[1-9]?[0-9]))\.){3}(25[0-5]|(2[0-4][0-9]|(1[01][0-9]|[1-9]?[0-9])))</code
-                      >
+                      <code>@int</code>, <code>@float</code> – Numeric type. Applies
+                      only to number type.
                     </li>
                     <li>
-                      url:
-                      <code
-                        >(?:(?:https?|ftp):\/\/)?(?:\S+(?::\S*)?@)?((?:(?!-)[A-Za-z0-9-]{0,62}[A-Za-z0-9]\.)+[A-Za-z]{2,6}|(?:\d{1,3}\.){3}\d{1,3})(?::\d{2,5})?(?:\/[^\s?#]*)?(?:\?[^\s#]*)?(?:#[^\s]*)?</code
-                      >
+                      <code>@regex(&quot;^[a-z]+$&quot;)</code> – Regex for strings.
+                      Applies only to strings type.
                     </li>
                     <li>
-                      phone:
-                      <code
-                        >\+?[0-9]{1,4}?[-. ]?\(?[0-9]{1,4}?\)?[-. ]?[0-9]{1,4}[-. ]?[0-9]{1,9}</code
-                      >
+                      <code>@start_with(&quot;/usr/&quot;)</code> – Starts-with
+                      assertion for strings. Applies only to strings type.
+                    </li>
+                    <li>
+                      <code>@end_with(&quot;.csl&quot;)</code> – Ends-with assertion
+                      for strings. Applies only to strings type.
+                    </li>
+                    <li>
+                      <code>@contain(&quot;temp&quot;)</code> – Contains assertion
+                      for strings. Applies only to strings type.
+                    </li>
+                    <li>
+                      <code>@min_length(10)</code>, <code>@max_length(100)</code>,
+                      <code>@length(50)</code> – String length assertion. Applies
+                      only to strings type.
+                    </li>
+                    <li>
+                      <code>@format(email)</code> – Built-in formats. Applies only
+                      to strings type. Available formats:
+                      <ul>
+                        <li>
+                          email:
+                          <code
+                            >(?:[a-z0-9!#$%&amp;'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&amp;'*+/=?^_`{|}~-]+)*|&quot;(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*&quot;)@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])</code
+                          >
+                        </li>
+                        <li>
+                          uuid:
+                          <code
+                            >([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})</code
+                          >
+                        </li>
+                        <li>
+                          ipv4:
+                          <code
+                            >(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])</code
+                          >
+                        </li>
+                        <li>
+                          ipv6:
+                          <code
+                            >(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,2}|(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,3}|(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,4}|(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:(?::[0-9a-fA-F]{1,4}){1,6}|:((?::[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(?::[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]+|::(ffff(:0{1,4}){0,1}:){0,1}(25[0-5]|(2[0-4][0-9]|(1[01][0-9]|[1-9]?[0-9]))\.){3}(25[0-5]|(2[0-4][0-9]|(1[01][0-9]|[1-9]?[0-9])))</code
+                          >
+                        </li>
+                        <li>
+                          url:
+                          <code
+                            >(?:(?:https?|ftp):\/\/)?(?:\S+(?::\S*)?@)?((?:(?!-)[A-Za-z0-9-]{0,62}[A-Za-z0-9]\.)+[A-Za-z]{2,6}|(?:\d{1,3}\.){3}\d{1,3})(?::\d{2,5})?(?:\/[^\s?#]*)?(?:\?[^\s#]*)?(?:#[^\s]*)?</code
+                          >
+                        </li>
+                        <li>
+                          phone:
+                          <code
+                            >\+?[0-9]{1,4}?[-. ]?\(?[0-9]{1,4}?\)?[-. ]?[0-9]{1,4}[-. ]?[0-9]{1,9}</code
+                          >
+                        </li>
+                      </ul>
                     </li>
                   </ul>
                 </li>
-              </ul>
-            </li>
-            <li>
-              Global annotations:
-              <ul>
-                <li>Global annotations apply to the key.</li>
                 <li>
-                  <code>@deprecated(&quot;This key is deprecated.&quot;)</code>
-                  – Marks a key as deprecated. This annotation always evaluates
-                  to true.
+                  Global annotations:
+                  <ul>
+                    <li>Global annotations apply to the key.</li>
+                    <li>
+                      <code>@deprecated(&quot;This key is deprecated.&quot;)</code>
+                      – Marks a key as deprecated. This annotation always evaluates
+                      to true.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  Local annotations follow the specific type they apply to, while
+                  global annotations are placed at the end of the key declaration.
+                  <pre><code class="language-CSL">retries: &quot;unlimited&quot; | number @min(0) @deprecated(&quot;This key is deprecated.&quot;);
+</code></pre>
                 </li>
               </ul>
             </li>
             <li>
-              Local annotations follow the specific type they apply to, while
-              global annotations are placed at the end of the key declaration.
-              <pre><code class="language-CSL">retries: &quot;unlimited&quot; | number @min(0) @deprecated(&quot;This key is deprecated.&quot;);
+              <p><strong>Constraints Block</strong></p>
+              <ul>
+                <li>
+                  <strong>Conflicts</strong>:
+                  <code>conflicts &lt;key&gt; with &lt;key&gt;;</code>
+                </li>
+                <li>
+                  <strong>Dependencies</strong>:
+                  <code>requires &lt;key&gt; =&gt; &lt;condition&gt;;</code>
+                </li>
+                <li>
+                  <strong>Custom Logic</strong>:
+                  <code>validate &lt;expression&gt;;</code> (boolean logic).
+                </li>
+                <li>
+                  Constraints block can appear anywhere in the scope, but only one
+                  per scope.
+                </li>
+              </ul>
+            </li>
+            <li>
+              <p><strong>Expressions</strong></p>
+              <ul>
+                <li>
+                  Reference keys: <code>environment == &quot;prod&quot;</code>,
+                  <code>database.port &gt; 1024</code>.
+                </li>
+                <li>
+                  Comparison operators: <code>==</code>, <code>!=</code>,
+                  <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code>,
+                  <code>&gt;=</code>.
+                </li>
+                <li>
+                  Logical operators (from highest priority to lowest priority):
+                  <code>!</code>, <code>&amp;&amp;</code>, <code>||</code>.
+                </li>
+                <li>Ternary operator: <code>? :</code>.</li>
+              </ul>
+            </li>
+            <li>
+              <p><strong>Unspecified Tables/Arrays</strong></p>
+              <ul>
+                <li>
+                  To allow a key to be <strong>any table</strong> or
+                  <strong>any array</strong> (without specifying internal
+                  structure):
+                </li>
+                <li>
+                  <strong>Any Table</strong>: Use <code>any{}</code> as the type.
+                  Accepts any table value (treated as a generic key-value table).
+                </li>
+                <li>
+                  <strong>Any Array</strong>: Use <code>any[]</code> as the type.
+                  Accepts any array (elements can be mixed types).
+                </li>
+                <li>
+                  Useful for &quot;passthrough&quot; configurations or avoiding
+                  over-constraining.
+                </li>
+                <li>
+                  <strong>Flexibility vs. Safety</strong>: <code>any{}</code>/<code
+                    >any[]</code
+                  >
+                  sacrifices validation for flexibility. Use sparingly.
+                </li>
+                <li>
+                  <strong>Tooling Support</strong>: Linters/IDEs should warn about
+                  unconstrained <code>any{}</code> usage.
+                </li>
+                <li>
+                  <code>any{}</code>/<code>any[]</code> cannot have nested
+                  constraints/annotations. They are &quot;opaque&quot; types.
+                </li>
+              </ul>
+            </li>
+            <li>
+              <p><strong>Dependency Syntax</strong></p>
+              <ul>
+                <li>
+                  <code>requires key_A =&gt; key_B</code>: Ensures
+                  <strong>existence</strong> of <code>key_B</code> (not value of
+                  <code>key_B</code> being positive) if <code>key_A</code> exists
+                  (not value of <code>key_A</code> being positive).
+                </li>
+                <li>
+                  Combine with annotations for value-based constraints:
+                  <pre><code class="language-CSL">requires ssl =&gt; domain @regex(&quot;\\.example\\.com$&quot;);
 </code></pre>
-            </li>
-          </ul>
-        </li>
-        <li>
-          <p><strong>Constraints Block</strong></p>
-          <ul>
-            <li>
-              <strong>Conflicts</strong>:
-              <code>conflicts &lt;key&gt; with &lt;key&gt;;</code>
+                </li>
+              </ul>
             </li>
             <li>
-              <strong>Dependencies</strong>:
-              <code>requires &lt;key&gt; =&gt; &lt;condition&gt;;</code>
-            </li>
-            <li>
-              <strong>Custom Logic</strong>:
-              <code>validate &lt;expression&gt;;</code> (boolean logic).
-            </li>
-            <li>
-              Constraints block can appear anywhere in the scope, but only one
-              per scope.
-            </li>
-          </ul>
-        </li>
-        <li>
-          <p><strong>Expressions</strong></p>
-          <ul>
-            <li>
-              Reference keys: <code>environment == &quot;prod&quot;</code>,
-              <code>database.port &gt; 1024</code>.
-            </li>
-            <li>
-              Comparison operators: <code>==</code>, <code>!=</code>,
-              <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code>,
-              <code>&gt;=</code>.
-            </li>
-            <li>
-              Logical operators (from highest priority to lowest priority):
-              <code>!</code>, <code>&amp;&amp;</code>, <code>||</code>.
-            </li>
-            <li>Ternary operator: <code>? :</code>.</li>
-          </ul>
-        </li>
-        <li>
-          <p><strong>Unspecified Tables/Arrays</strong></p>
-          <ul>
-            <li>
-              To allow a key to be <strong>any table</strong> or
-              <strong>any array</strong> (without specifying internal
-              structure):
-            </li>
-            <li>
-              <strong>Any Table</strong>: Use <code>any{}</code> as the type.
-              Accepts any table value (treated as a generic key-value table).
-            </li>
-            <li>
-              <strong>Any Array</strong>: Use <code>any[]</code> as the type.
-              Accepts any array (elements can be mixed types).
-            </li>
-            <li>
-              Useful for &quot;passthrough&quot; configurations or avoiding
-              over-constraining.
-            </li>
-            <li>
-              <strong>Flexibility vs. Safety</strong>: <code>any{}</code>/<code
-                >any[]</code
-              >
-              sacrifices validation for flexibility. Use sparingly.
-            </li>
-            <li>
-              <strong>Tooling Support</strong>: Linters/IDEs should warn about
-              unconstrained <code>any{}</code> usage.
-            </li>
-            <li>
-              <code>any{}</code>/<code>any[]</code> cannot have nested
-              constraints/annotations. They are &quot;opaque&quot; types.
-            </li>
-          </ul>
-        </li>
-        <li>
-          <p><strong>Dependency Syntax</strong></p>
-          <ul>
-            <li>
-              <code>requires key_A =&gt; key_B</code>: Ensures
-              <strong>existence</strong> of <code>key_B</code> (not value of
-              <code>key_B</code> being positive) if <code>key_A</code> exists
-              (not value of <code>key_A</code> being positive).
-            </li>
-            <li>
-              Combine with annotations for value-based constraints:
-              <pre><code class="language-CSL">requires ssl =&gt; domain @regex(&quot;\\.example\\.com$&quot;);
+              <p><strong>Explicit Existence Checks</strong></p>
+              <ul>
+                <li>
+                  Use <code>exists(key)</code> in expressions for custom logic:
+                  <pre><code class="language-CSL">validate exists(database.credentials) ? environment == &quot;prod&quot; : true;
 </code></pre>
+                </li>
+              </ul>
             </li>
-          </ul>
-        </li>
-        <li>
-          <p><strong>Explicit Existence Checks</strong></p>
+            <li>
+              <p><strong>Wildcard Key (<code>*</code>)</strong>:</p>
+            </li>
+          </ol>
           <ul>
             <li>
-              Use <code>exists(key)</code> in expressions for custom logic:
-              <pre><code class="language-CSL">validate exists(database.credentials) ? environment == &quot;prod&quot; : true;
-</code></pre>
+              <p>Indicates &quot;any key name is allowed here.&quot;</p>
             </li>
-          </ul>
-        </li>
-        <li>
-          <p><strong>Wildcard Key (<code>*</code>)</strong>:</p>
-        </li>
-      </ol>
-      <ul>
-        <li>
-          <p>Indicates &quot;any key name is allowed here.&quot;</p>
-        </li>
-        <li>
-          <p>
-            The value type after <code>:</code> enforces the structure for
-            <strong>all matched entries</strong> in the table.
-          </p>
-        </li>
-        <li>
-          <p>
-            A wildcard key matches any keys unless they are explicitly defined.
-            Explicit keys take precedence over wildcards.
-          </p>
-          <pre><code class="language-CSL">config BuildConfig {
+            <li>
+              <p>
+                The value type after <code>:</code> enforces the structure for
+                <strong>all matched entries</strong> in the table.
+              </p>
+            </li>
+            <li>
+              <p>
+                A wildcard key matches any keys unless they are explicitly defined.
+                Explicit keys take precedence over wildcards.
+              </p>
+              <pre><code class="language-CSL">config BuildConfig {
   // All keys under &quot;target&quot; must have values of type `{ lib_path: string; bin_path: string }`
   target: {
     x86: { lib_path: string; }; // Explicit key
@@ -707,28 +949,28 @@ debug: boolean | &quot;verbose&quot;; // Boolean or the literal &quot;verbose&qu
   };
 }
 </code></pre>
-          <p>This means:</p>
-          <ul>
-            <li>
-              <code>target</code> is a table where
-              <strong>any key</strong> (e.g., <code>riscv</code>,
-              <code>arm</code>, etc.) is allowed.
+              <p>This means:</p>
+              <ul>
+                <li>
+                  <code>target</code> is a table where
+                  <strong>any key</strong> (e.g., <code>riscv</code>,
+                  <code>arm</code>, etc.) is allowed.
+                </li>
+                <li>
+                  <code>target.x86</code> <strong>only</strong> requires
+                  <code>lib_path</code> (wildcard <code>bin_path</code> is ignored
+                  for this key).
+                </li>
+                <li>
+                  Any other key (e.g., <code>arm</code>) <strong>must</strong> be a
+                  table with <code>lib_path</code> and <code>bin_path</code> (both
+                  strings).
+                </li>
+              </ul>
             </li>
             <li>
-              <code>target.x86</code> <strong>only</strong> requires
-              <code>lib_path</code> (wildcard <code>bin_path</code> is ignored
-              for this key).
-            </li>
-            <li>
-              Any other key (e.g., <code>arm</code>) <strong>must</strong> be a
-              table with <code>lib_path</code> and <code>bin_path</code> (both
-              strings).
-            </li>
-          </ul>
-        </li>
-        <li>
-          <p>Wildcard keys works with nested structures. For example:</p>
-          <pre><code class="language-CSL">platforms: {
+              <p>Wildcard keys works with nested structures. For example:</p>
+              <pre><code class="language-CSL">platforms: {
   *: {  // Dynamic platform names (e.g., &quot;windows&quot;, &quot;linux&quot;)
     arch: {
       *: { lib_path: string; };  // Dynamic arch keys (e.g., &quot;x86&quot;, &quot;arm64&quot;)
@@ -736,13 +978,13 @@ debug: boolean | &quot;verbose&quot;; // Boolean or the literal &quot;verbose&qu
   };
 };
 </code></pre>
-        </li>
-        <li>
-          <p>
-            You can enforce additional rules on the dynamic keys or their values
-            using a <code>constraints</code> block:
-          </p>
-          <pre><code class="language-CSL">config BuildConfig {
+            </li>
+            <li>
+              <p>
+                You can enforce additional rules on the dynamic keys or their values
+                using a <code>constraints</code> block:
+              </p>
+              <pre><code class="language-CSL">config BuildConfig {
   target: {
     *: {
       lib_path: string @starts_with(&quot;/usr/&quot;);
@@ -759,37 +1001,37 @@ debug: boolean | &quot;verbose&quot;; // Boolean or the literal &quot;verbose&qu
   };
 }
 </code></pre>
-        </li>
-      </ul>
-      <ol start="11">
-        <li><strong>Batch Key Validation</strong></li>
-      </ol>
-      <ul>
-        <li>
-          <code>count_keys(table)</code> – Returns the number of keys in a
-          table.
-        </li>
-        <li>
-          <code>all_keys(table)</code> – Returns the keys of a table for
-          validation (e.g., regex checks).
-        </li>
-        <li>
-          <code>wildcard_keys(table)</code> – Returns the wildcard keys of a
-          table for validation (e.g., regex checks).
-        </li>
-        <li>
-          Annotations for string can be used with <code>all_keys</code> and
-          <code>wildcard_keys</code> to validate the name of the keys.
-        </li>
-      </ul>
-      <ol start="12">
-        <li>
-          <strong>Subset Validation</strong><br />
-          Use <code>subset</code> function in the
-          <code>constraints</code> block:
-        </li>
-      </ol>
-      <pre><code class="language-CSL">constraints {
+            </li>
+          </ul>
+          <ol start="11">
+            <li><strong>Batch Key Validation</strong></li>
+          </ol>
+          <ul>
+            <li>
+              <code>count_keys(table)</code> – Returns the number of keys in a
+              table.
+            </li>
+            <li>
+              <code>all_keys(table)</code> – Returns the keys of a table for
+              validation (e.g., regex checks).
+            </li>
+            <li>
+              <code>wildcard_keys(table)</code> – Returns the wildcard keys of a
+              table for validation (e.g., regex checks).
+            </li>
+            <li>
+              Annotations for string can be used with <code>all_keys</code> and
+              <code>wildcard_keys</code> to validate the name of the keys.
+            </li>
+          </ul>
+          <ol start="12">
+            <li>
+              <strong>Subset Validation</strong><br />
+              Use <code>subset</code> function in the
+              <code>constraints</code> block:
+            </li>
+          </ol>
+          <pre><code class="language-CSL">constraints {
   // Basic subset check (all elements of `selected` exist in `allowed`)
   validate subset(selected_features, allowed_features);
 
@@ -797,50 +1039,50 @@ debug: boolean | &quot;verbose&quot;; // Boolean or the literal &quot;verbose&qu
   validate subset(selected_plugins, available_plugins, [id]);
 }
 </code></pre>
-      <hr />
-      <h3 id="semantics"><strong>Semantic Rules</strong></h3>
-      <ul>
-        <li>
-          <strong>Scoping</strong>: Constraints apply to the current block
-          (e.g., nested tables have their own <code>constraints</code>).
-        </li>
-        <li>
-          <strong>Path References</strong>: Use dot notation
-          (<code>database.credentials.username</code>) to reference nested keys.
-        </li>
-        <li>
-          <strong>Default Values</strong>: Assign with
-          <code>= value</code> (e.g.,
-          <code>environment = &quot;dev&quot;</code>).
-        </li>
-      </ul>
-      <hr />
-      <h3 id="scoping"><strong>Scoping Rules</strong></h3>
-      <ol>
-        <li>
-          <p>
-            <strong
-              >Constraints in a nested block can only reference keys within
-              their immediate scope</strong
-            >.
-          </p>
+          <hr />
+          <h3 id="semantics"><strong>Semantic Rules</strong></h3>
           <ul>
             <li>
-              No access to parent/ancestor keys. In a scope, only local keys or
-              <strong>relative nested keys</strong> are allowed.
+              <strong>Scoping</strong>: Constraints apply to the current block
+              (e.g., nested tables have their own <code>constraints</code>).
             </li>
             <li>
-              All keys in constraints must exist
-              <strong>within the same block</strong> where the
-              <code>constraints</code> are defined.
+              <strong>Path References</strong>: Use dot notation
+              (<code>database.credentials.username</code>) to reference nested keys.
             </li>
             <li>
-              <strong>Tooling</strong>: A parser/validator would flag any
-              reference to keys outside the current block’s scope.
+              <strong>Default Values</strong>: Assign with
+              <code>= value</code> (e.g.,
+              <code>environment = &quot;dev&quot;</code>).
             </li>
+          </ul>
+          <hr />
+          <h3 id="scoping"><strong>Scoping Rules</strong></h3>
+          <ol>
             <li>
-              <strong>Valid: Local Constraints Only</strong>
-              <pre><code class="language-CSL">config Server {
+              <p>
+                <strong
+                  >Constraints in a nested block can only reference keys within
+                  their immediate scope</strong
+                >.
+              </p>
+              <ul>
+                <li>
+                  No access to parent/ancestor keys. In a scope, only local keys or
+                  <strong>relative nested keys</strong> are allowed.
+                </li>
+                <li>
+                  All keys in constraints must exist
+                  <strong>within the same block</strong> where the
+                  <code>constraints</code> are defined.
+                </li>
+                <li>
+                  <strong>Tooling</strong>: A parser/validator would flag any
+                  reference to keys outside the current block’s scope.
+                </li>
+                <li>
+                  <strong>Valid: Local Constraints Only</strong>
+                  <pre><code class="language-CSL">config Server {
   database: {
     ssl: boolean;
     port: number;
@@ -858,12 +1100,12 @@ debug: boolean | &quot;verbose&quot;; // Boolean or the literal &quot;verbose&qu
   };
 }
 </code></pre>
-            </li>
-            <li>
-              <strong
-                >Invalid: Nested Constraints Referencing Parent Keys</strong
-              >
-              <pre><code class="language-CSL">config Example {
+                </li>
+                <li>
+                  <strong
+                    >Invalid: Nested Constraints Referencing Parent Keys</strong
+                  >
+                  <pre><code class="language-CSL">config Example {
   log_level: &quot;debug&quot; | &quot;info&quot;;
   logger: {
     format: string;
@@ -874,12 +1116,12 @@ debug: boolean | &quot;verbose&quot;; // Boolean or the literal &quot;verbose&qu
   };
 }
 </code></pre>
-            </li>
-            <li>
-              <strong>Local-Only Rules For Wildcard Keys</strong>: Constraints
-              inside the <code>*</code> block apply to
-              <strong>all instances</strong> of dynamic keys. For example:
-              <pre><code class="language-CSL">target: {
+                </li>
+                <li>
+                  <strong>Local-Only Rules For Wildcard Keys</strong>: Constraints
+                  inside the <code>*</code> block apply to
+                  <strong>all instances</strong> of dynamic keys. For example:
+                  <pre><code class="language-CSL">target: {
   *: {
     lib_path: string;
     constraints {
@@ -890,36 +1132,36 @@ debug: boolean | &quot;verbose&quot;; // Boolean or the literal &quot;verbose&qu
   };
 };
 </code></pre>
-            </li>
-          </ul>
-        </li>
-        <li>
-          <p>
-            <strong
-              >Parent constraints cannot be overridden by child
-              constraints</strong
-            >.
-          </p>
-          <ul>
-            <li>
-              <p>
-                Constraints are <strong>additive</strong>: Parent and child
-                constraints <em>both</em> apply.
-              </p>
+                </li>
+              </ul>
             </li>
             <li>
               <p>
-                Conflicting constraints (e.g., a parent says <code>A</code> is
-                required, a child says <code>A</code> is forbidden) will make
-                both constraints invalid.
+                <strong
+                  >Parent constraints cannot be overridden by child
+                  constraints</strong
+                >.
               </p>
-            </li>
-            <li>
-              <p>
-                Constraints are <strong>never overridden</strong> — they are
-                cumulative. For example:
-              </p>
-              <pre><code class="language-CSL">config Example {
+              <ul>
+                <li>
+                  <p>
+                    Constraints are <strong>additive</strong>: Parent and child
+                    constraints <em>both</em> apply.
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    Conflicting constraints (e.g., a parent says <code>A</code> is
+                    required, a child says <code>A</code> is forbidden) will make
+                    both constraints invalid.
+                  </p>
+                </li>
+                <li>
+                  <p>
+                    Constraints are <strong>never overridden</strong> — they are
+                    cumulative. For example:
+                  </p>
+                  <pre><code class="language-CSL">config Example {
   constraints {
     requires nested.a =&gt; b;  // Parent rule
   };
@@ -931,266 +1173,320 @@ debug: boolean | &quot;verbose&quot;; // Boolean or the literal &quot;verbose&qu
   };
 }
 </code></pre>
-              <p>
-                If <code>nested.a</code> exists, <strong>both</strong>
-                <code>b</code> (from root) and <code>c</code> (from nested) must
-                exist.<br />
-                If <code>nested.a</code> and <code>nested.c</code> exist but
-                <code>b</code> doesn’t, validation <strong>fails</strong> due to
-                the root constraint.
-              </p>
+                  <p>
+                    If <code>nested.a</code> exists, <strong>both</strong>
+                    <code>b</code> (from root) and <code>c</code> (from nested) must
+                    exist.<br />
+                    If <code>nested.a</code> and <code>nested.c</code> exist but
+                    <code>b</code> doesn’t, validation <strong>fails</strong> due to
+                    the root constraint.
+                  </p>
+                </li>
+              </ul>
             </li>
-          </ul>
-        </li>
-      </ol>
-      <hr />
-      <h3 id="subset">
-        <strong><code>subset</code> Key Rules</strong>
-      </h3>
-      <ol>
-        <li>
-          <p><strong>Primitive Arrays</strong> (strings, numbers, etc.):</p>
-          <ul>
+          </ol>
+          <hr />
+          <h3 id="subset">
+            <strong><code>subset</code> Key Rules</strong>
+          </h3>
+          <ol>
             <li>
-              Omit the <code>properties</code> parameter. Uses strict equality
-              (<code>&quot;auto&quot; === &quot;auto&quot;</code>).
-            </li>
-            <li>
-              Example: <code>subset(selected_ports, allowed_ports)</code>.
-            </li>
-          </ul>
-        </li>
-        <li>
-          <p><strong>Object Arrays</strong>:</p>
-          <ul>
-            <li>
-              Use <code>properties</code> to specify which keys to compare
-              (e.g., <code>[id]</code>).
-            </li>
-            <li>
-              If omitted, validates by
-              <strong>full object equality</strong> (rarely useful, so tools may
-              warn).
-            </li>
-          </ul>
-        </li>
-        <li>
-          <p><strong>Composite Keys</strong>:</p>
-          <ul>
-            <li>
-              Provide multiple properties (e.g., <code>[region, env]</code>).
-              All must match.
-            </li>
-          </ul>
-        </li>
-        <li>
-          <p><strong>Edge Cases</strong>:</p>
-          <ul>
-            <li>Empty <code>source_array</code> is always valid.</li>
-            <li>
-              Empty <code>target_array</code> + non-empty
-              <code>source_array</code> → invalid.
-            </li>
-          </ul>
-        </li>
-        <li>
-          <p><strong>Tooling Behavior</strong>:</p>
-          <ul>
-            <li>
-              <strong>Validation</strong>:
+              <p><strong>Primitive Arrays</strong> (strings, numbers, etc.):</p>
               <ul>
                 <li>
-                  Ensure <code>properties</code> exist in both
-                  <code>source_array</code> and
-                  <code>target_array</code> schemas.
+                  Omit the <code>properties</code> parameter. Uses strict equality
+                  (<code>&quot;auto&quot; === &quot;auto&quot;</code>).
                 </li>
                 <li>
-                  Error if <code>properties</code> are specified for primitive
-                  arrays.
+                  Example: <code>subset(selected_ports, allowed_ports)</code>.
                 </li>
               </ul>
             </li>
             <li>
-              <strong>Autocomplete</strong>: Suggest available properties for
-              object arrays.
+              <p><strong>Object Arrays</strong>:</p>
+              <ul>
+                <li>
+                  Use <code>properties</code> to specify which keys to compare
+                  (e.g., <code>[id]</code>).
+                </li>
+                <li>
+                  If omitted, validates by
+                  <strong>full object equality</strong> (rarely useful, so tools may
+                  warn).
+                </li>
+              </ul>
             </li>
-          </ul>
-        </li>
-      </ol>
-      <hr />
-      <h3 id="tooling"><strong>Tooling Integration</strong></h3>
-      <ul>
-        <li>
-          <strong>Validation</strong>: Use a CSL parser to check config files
-          against the schema.
-        </li>
-        <li>
-          <strong>Autocomplete</strong>: IDEs can suggest keys/types based on
-          the schema.
-        </li>
-        <li>
-          <strong>Documentation</strong>: Generate human-readable docs from CSL
-          files.
-        </li>
-      </ul>
-      <hr />
-      <h3 id="why"><strong>Why CSL Works</strong></h3>
-      <p>
-        <strong>CSL</strong> strikes a deliberate balance between flexibility
-        and rigor, making it effective for real-world configuration management:
-      </p>
-      <ol>
-        <li>
-          <p><strong>Human-Centered Design</strong></p>
+            <li>
+              <p><strong>Composite Keys</strong>:</p>
+              <ul>
+                <li>
+                  Provide multiple properties (e.g., <code>[region, env]</code>).
+                  All must match.
+                </li>
+              </ul>
+            </li>
+            <li>
+              <p><strong>Edge Cases</strong>:</p>
+              <ul>
+                <li>Empty <code>source_array</code> is always valid.</li>
+                <li>
+                  Empty <code>target_array</code> + non-empty
+                  <code>source_array</code> → invalid.
+                </li>
+              </ul>
+            </li>
+            <li>
+              <p><strong>Tooling Behavior</strong>:</p>
+              <ul>
+                <li>
+                  <strong>Validation</strong>:
+                  <ul>
+                    <li>
+                      Ensure <code>properties</code> exist in both
+                      <code>source_array</code> and
+                      <code>target_array</code> schemas.
+                    </li>
+                    <li>
+                      Error if <code>properties</code> are specified for primitive
+                      arrays.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <strong>Autocomplete</strong>: Suggest available properties for
+                  object arrays.
+                </li>
+              </ul>
+            </li>
+          </ol>
+          <hr />
+          <h3 id="tooling"><strong>Tooling Integration</strong></h3>
           <ul>
             <li>
-              <strong>Familiar syntax</strong> (TypeScript/C++/Rust-inspired)
-              reduces cognitive load. Developers intuitively understand braces,
-              type annotations, and <code>key: value</code> structures.
+              <strong>Validation</strong>: Use a CSL parser to check config files
+              against the schema.
             </li>
             <li>
-              <strong>Annotations</strong> keep validation rules inline with
-              type definitions, minimizing context switching.
+              <strong>Autocomplete</strong>: IDEs can suggest keys/types based on
+              the schema.
             </li>
             <li>
-              <strong>Wildcard keys</strong> (<code>*</code>) and
-              <code>any{}</code>/<code>any[]</code> enable gradual schema
-              adoption—teams can start loosely and tighten constraints
-              incrementally.
+              <strong>Documentation</strong>: Generate human-readable docs from CSL
+              files.
             </li>
           </ul>
-        </li>
-        <li>
-          <p><strong>Precision Without Verbosity</strong></p>
-          <ul>
+          <hr />
+          <h3 id="why"><strong>Why CSL Works</strong></h3>
+          <p>
+            <strong>CSL</strong> strikes a deliberate balance between flexibility
+            and rigor, making it effective for real-world configuration management:
+          </p>
+          <ol>
             <li>
-              <strong>Union types</strong> (<code
-                >&quot;dev&quot; | &quot;prod&quot;</code
-              >) and <strong>enums</strong> enforce strict allowed values
-              without bloated boilerplate.
+              <p><strong>Human-Centered Design</strong></p>
+              <ul>
+                <li>
+                  <strong>Familiar syntax</strong> (TypeScript/C++/Rust-inspired)
+                  reduces cognitive load. Developers intuitively understand braces,
+                  type annotations, and <code>key: value</code> structures.
+                </li>
+                <li>
+                  <strong>Annotations</strong> keep validation rules inline with
+                  type definitions, minimizing context switching.
+                </li>
+                <li>
+                  <strong>Wildcard keys</strong> (<code>*</code>) and
+                  <code>any{}</code>/<code>any[]</code> enable gradual schema
+                  adoption—teams can start loosely and tighten constraints
+                  incrementally.
+                </li>
+              </ul>
             </li>
             <li>
-              <strong>Expressive constraints</strong> (e.g.,
-              <code>conflicts</code>, <code>requires</code>) declaratively model
-              complex key relationships, replacing fragile ad-hoc validation
-              scripts.
-            </li>
-          </ul>
-        </li>
-        <li>
-          <p><strong>Context-Aware Validation</strong></p>
-          <ul>
-            <li>
-              <strong>Scoped constraints</strong> ensure rules apply only to
-              their logical context, preventing unintended side effects.
-            </li>
-            <li>
-              <strong>Absolute/relative paths</strong>
-              (<code>database.port</code>) enable cross-key validation while
-              nested constraints keep local logic self-contained.
-            </li>
-          </ul>
-        </li>
-        <li>
-          <p><strong>Dynamic Config Support</strong></p>
-          <ul>
-            <li>
-              <strong>Wildcard-driven schemas</strong> validate dynamic keys
-              (e.g., environment-specific settings) without sacrificing
-              structure.
+              <p><strong>Precision Without Verbosity</strong></p>
+              <ul>
+                <li>
+                  <strong>Union types</strong> (<code
+                    >&quot;dev&quot; | &quot;prod&quot;</code
+                  >) and <strong>enums</strong> enforce strict allowed values
+                  without bloated boilerplate.
+                </li>
+                <li>
+                  <strong>Expressive constraints</strong> (e.g.,
+                  <code>conflicts</code>, <code>requires</code>) declaratively model
+                  complex key relationships, replacing fragile ad-hoc validation
+                  scripts.
+                </li>
+              </ul>
             </li>
             <li>
-              <strong>Batch key checks</strong> (<code>all_keys()</code>, regex
-              validations) enforce naming conventions or key patterns at scale.
-            </li>
-          </ul>
-        </li>
-        <li>
-          <p><strong>Tooling-Ready Structure</strong></p>
-          <ul>
-            <li>
-              <strong>Explicit types and constraints</strong> enable IDE
-              autocomplete, linting, and documentation generation
-              out-of-the-box.
-            </li>
-            <li>
-              <strong><code>subset</code> validation</strong> and
-              <strong>existence checks</strong> (<code>exists()</code>) cover
-              advanced use cases like feature toggles or plugin dependencies.
-            </li>
-          </ul>
-        </li>
-        <li>
-          <p><strong>Safety by Default</strong></p>
-          <ul>
-            <li>
-              <strong>Mandatory keys</strong> enforce critical properties
-              upfront.
+              <p><strong>Context-Aware Validation</strong></p>
+              <ul>
+                <li>
+                  <strong>Scoped constraints</strong> ensure rules apply only to
+                  their logical context, preventing unintended side effects.
+                </li>
+                <li>
+                  <strong>Absolute/relative paths</strong>
+                  (<code>database.port</code>) enable cross-key validation while
+                  nested constraints keep local logic self-contained.
+                </li>
+              </ul>
             </li>
             <li>
-              <strong>Conflict resolution</strong> (<code
-                >conflicts X with Y</code
-              >) prevents invalid states that manual reviews often miss.
+              <p><strong>Dynamic Config Support</strong></p>
+              <ul>
+                <li>
+                  <strong>Wildcard-driven schemas</strong> validate dynamic keys
+                  (e.g., environment-specific settings) without sacrificing
+                  structure.
+                </li>
+                <li>
+                  <strong>Batch key checks</strong> (<code>all_keys()</code>, regex
+                  validations) enforce naming conventions or key patterns at scale.
+                </li>
+              </ul>
             </li>
-          </ul>
-        </li>
-      </ol>
-      <p>
-        <strong>CSL</strong> avoids the extremes of rigid, unmaintainable
-        schemas or overly permissive &quot;anything goes&quot; configurations.
-        It codifies best practices—type safety, proactive validation, and clear
-        relationships—while staying adaptable to evolving requirements.
-      </p>
+            <li>
+              <p><strong>Tooling-Ready Structure</strong></p>
+              <ul>
+                <li>
+                  <strong>Explicit types and constraints</strong> enable IDE
+                  autocomplete, linting, and documentation generation
+                  out-of-the-box.
+                </li>
+                <li>
+                  <strong><code>subset</code> validation</strong> and
+                  <strong>existence checks</strong> (<code>exists()</code>) cover
+                  advanced use cases like feature toggles or plugin dependencies.
+                </li>
+              </ul>
+            </li>
+            <li>
+              <p><strong>Safety by Default</strong></p>
+              <ul>
+                <li>
+                  <strong>Mandatory keys</strong> enforce critical properties
+                  upfront.
+                </li>
+                <li>
+                  <strong>Conflict resolution</strong> (<code
+                    >conflicts X with Y</code
+                  >) prevents invalid states that manual reviews often miss.
+                </li>
+              </ul>
+            </li>
+          </ol>
+          <p>
+            <strong>CSL</strong> avoids the extremes of rigid, unmaintainable
+            schemas or overly permissive &quot;anything goes&quot; configurations.
+            It codifies best practices—type safety, proactive validation, and clear
+            relationships—while staying adaptable to evolving requirements.
+          </p>
+        </div>
+      </div>
     </div>
-    <script>
-      // Add smooth scrolling
+
+    <footer>
+      <div class="footer-card">
+        <div>
+          <strong>CSL</strong> • Apache 2.0 • © 2025
+          <div style="font-weight: 700; margin-top: 0.25rem;">Built by nullptr-0.</div>
+        </div>
+        <div class="footer-links">
+          <a href="./index.html">Home</a>
+          <a href="./examples.html">Examples</a>
+          <a href="https://github.com/nullptr-0/csl" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://github.com/nullptr-0/csl/issues" target="_blank" rel="noopener">Issues</a>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <button class="button backtop" id="backTop" type="button" onclick="window.scrollTo({top:0, behavior:'smooth'})" aria-label="Back to top">↑ Top</button>
+
+  <script>
+    function toggleMenu(btn){
+      const nav = document.getElementById("navLinks");
+      const open = nav.getAttribute("data-open") === "true";
+      nav.setAttribute("data-open", String(!open));
+      btn.setAttribute("aria-expanded", String(!open));
+    }
+
+    // Back-to-top visibility
+    (function(){
+      const b = document.getElementById("backTop");
+      function onScroll(){
+        b.setAttribute("data-show", window.scrollY > 700 ? "true" : "false");
+      }
+      window.addEventListener("scroll", onScroll, {passive:true});
+      onScroll();
+    })();
+
+    // Smooth scroll for in-page anchors (within the docs)
+    (function(){
       document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
+          const id = this.getAttribute('href');
+          if (!id || id === "#") return;
+          const el = document.querySelector(id);
+          if (!el) return;
           e.preventDefault();
-          document.querySelector(this.getAttribute('href')).scrollIntoView({
-            behavior: 'smooth'
-          });
+          el.scrollIntoView({ behavior: 'smooth' });
         });
       });
-    </script>
-    <script>
+    })();
+  </script>
+  <script src="https://unpkg.com/vditor/dist/js/icons/ant.js"></script>
+  <script>
+    // Prefer matching the system color scheme for Vditor content.
+    (function(){
       const previewElement = document.getElementById("preview");
-      Vditor.setContentTheme(
-        "light",
-        "https://unpkg.com/vditor/dist/css/content-theme"
-      );
-      Vditor.codeRender(previewElement);
-      Vditor.highlightRender(
-        { enable: true, lineNumber: true, defaultLang: "", style: "github" },
-        previewElement,
-        "https://unpkg.com/vditor"
-      );
-      Vditor.mathRender(previewElement, {
-        cdn: "https://unpkg.com/vditor",
-        math: { engine: "KaTeX", inlineDigit: false, macros: {} },
-      });
-      Vditor.mermaidRender(
-        previewElement,
-        "https://unpkg.com/vditor",
-        "classic"
-      );
-      Vditor.markmapRender(
-        previewElement,
-        "https://unpkg.com/vditor",
-        "classic"
-      );
-      Vditor.flowchartRender(previewElement, "https://unpkg.com/vditor");
-      Vditor.graphvizRender(previewElement, "https://unpkg.com/vditor");
-      Vditor.chartRender(previewElement, "https://unpkg.com/vditor", "classic");
-      Vditor.mindmapRender(
-        previewElement,
-        "https://unpkg.com/vditor",
-        "classic"
-      );
-      Vditor.abcRender(previewElement, "https://unpkg.com/vditor");
-      Vditor.mediaRender(previewElement);
-      Vditor.speechRender(previewElement);
-    </script>
-    <script src="https://unpkg.com/vditor/dist/js/icons/ant.js"></script>
-  </body>
+      if (!previewElement || !window.Vditor) return;
+
+      const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const theme = prefersDark ? "dark" : "light";
+
+      try{
+        Vditor.setContentTheme(theme, "https://unpkg.com/vditor/dist/css/content-theme");
+      }catch(e){
+        Vditor.setContentTheme("light", "https://unpkg.com/vditor/dist/css/content-theme");
+      }
+
+      try{
+        Vditor.codeRender(previewElement);
+        Vditor.highlightRender(
+          { enable: true, lineNumber: true, defaultLang: "", style: "github" },
+          previewElement,
+          "https://unpkg.com/vditor"
+        );
+        Vditor.mathRender(previewElement, {
+          cdn: "https://unpkg.com/vditor",
+          math: { engine: "KaTeX", inlineDigit: false, macros: {} },
+        });
+        Vditor.mermaidRender(
+          previewElement,
+          "https://unpkg.com/vditor",
+          "classic"
+        );
+        Vditor.markmapRender(
+          previewElement,
+          "https://unpkg.com/vditor",
+          "classic"
+        );
+        Vditor.flowchartRender(previewElement, "https://unpkg.com/vditor");
+        Vditor.graphvizRender(previewElement, "https://unpkg.com/vditor");
+        Vditor.chartRender(previewElement, "https://unpkg.com/vditor", "classic");
+        Vditor.mindmapRender(
+          previewElement,
+          "https://unpkg.com/vditor",
+          "classic"
+        );
+        Vditor.abcRender(previewElement, "https://unpkg.com/vditor");
+        Vditor.mediaRender(previewElement);
+        Vditor.speechRender(previewElement);
+      }catch(e){}
+    })();
+  </script>
+</body>
 </html>

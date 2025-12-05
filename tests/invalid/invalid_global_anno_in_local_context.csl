@@ -1,0 +1,3 @@
+config InvalidGlobalLocal {
+  a: string @deprecated("bad") @contain("csl");
+}

@@ -1,0 +1,157 @@
+{
+  "name": "csl",
+  "displayName": "CSL",
+  "description": "CSL Language Service",
+  "version": "0.0.1",
+  "author": "nullptr-0",
+  "license": "Apache-2.0",
+  "publisher": "nullptr-0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nullptr-0/csl.git"
+  },
+  "engines": {
+    "vscode": "^1.106.1"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "icon": "./img/csl.png",
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onLanguage:csl",
+    "onCommand:csl.generateHtmlDoc"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "csl",
+        "aliases": [
+          "CSL"
+        ],
+        "extensions": [
+          ".csl"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "csl.generateHtmlDoc",
+        "title": "Generate CSL HTML Docs"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "csl.generateHtmlDoc",
+          "group": "navigation",
+          "when": "resourceLangId == csl"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "csl.generateHtmlDoc",
+          "group": "navigation",
+          "when": "resourceExtname == .csl"
+        }
+      ]
+    },
+    "semanticTokenTypes": [
+      {
+        "id": "datetime",
+        "superType": "string",
+        "description": "A date-time."
+      },
+      {
+        "id": "duration",
+        "superType": "string",
+        "description": "A duration."
+      },
+      {
+        "id": "boolean",
+        "superType": "keyword",
+        "description": "A boolean value."
+      },
+      {
+        "id": "identifier",
+        "superType": "variable",
+        "description": "An identifier."
+      },
+      {
+        "id": "punctuator",
+        "superType": "operator",
+        "description": "A punctuator."
+      },
+      {
+        "id": "unknown",
+        "description": "An unknown type of token."
+      }
+    ],
+    "semanticTokenModifiers": [],
+    "semanticTokenScopes": [
+      {
+        "scopes": {
+          "datetime": [
+            "string.interpolated"
+          ],
+          "duration": [
+            "string.interpolated"
+          ],
+          "number": [
+            "constant.numeric"
+          ],
+          "boolean": [
+            "constant.language"
+          ],
+          "keyword": [
+            "keyword.control"
+          ],
+          "type": [
+            "entity.name.type"
+          ],
+          "identifier": [
+            "variable.other"
+          ],
+          "punctuator": [
+            "punctuation.separator"
+          ],
+          "operator": [
+            "keyword.operator"
+          ],
+          "comment": [
+            "comment.line.number-sign"
+          ],
+          "string": [
+            "string.quoted.double"
+          ],
+          "unknown": [
+            "invalid.illegal"
+          ]
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "npm run check-types && node esbuild.js",
+    "check-types": "tsc --noEmit",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "vscode:prepublish": "npm run package",
+    "package": "npm run check-types && node esbuild.js --production",
+    "dev": "tsc -p ./",
+    "lint": "eslint src"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/vscode": "^1.106.1",
+    "@typescript-eslint/eslint-plugin": "^8.48.0",
+    "@typescript-eslint/parser": "^8.48.0",
+    "esbuild": "^0.27.0",
+    "eslint": "^9.39.1",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.9.3",
+    "vscode-languageclient": "^9.0.1"
+  }
+}

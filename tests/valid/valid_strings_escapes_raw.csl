@@ -1,0 +1,7 @@
+config Strings {
+  basic: string = "Line1\nLine2\t\u0041\x41\\\"\`";
+  raw_tagged: string = R"DELIM(Use // and \n literally)DELIM";
+  raw_multiline: string = R"TAG(Line1
+Line2
+Line3)TAG";
+}

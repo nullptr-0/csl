@@ -1,0 +1,6 @@
+.vscode/
+core/*
+dist/
+node_modules/
+out/
+*.vsix

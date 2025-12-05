@@ -1,0 +1,7 @@
+config SubsetPrim {
+  allowed: string[];
+  selected: string[];
+  constraints {
+    validate subset(selected, allowed);
+  };
+}

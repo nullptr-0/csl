@@ -1,0 +1,5 @@
+config Enums {
+  method: "GET" | "POST" | "PUT";
+  port_or_name: number | string;
+  bool_or_literal: boolean | "verbose";
+}

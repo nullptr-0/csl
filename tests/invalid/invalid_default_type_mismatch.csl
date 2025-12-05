@@ -1,0 +1,3 @@
+config InvalidDefaultType {
+  port: number = "8080";
+}

@@ -1,0 +1,3 @@
+config DurationWeek {
+  two_weeks: duration = 2w;
+}

@@ -1,0 +1,7 @@
+config SubsetObj {
+  available: { id: string; name: string; }[];
+  selected: { id: string; name: string; }[];
+  constraints {
+    validate subset(selected, available, [id]);
+  };
+}

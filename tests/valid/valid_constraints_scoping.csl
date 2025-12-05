@@ -1,0 +1,15 @@
+config ConstraintsScope {
+  a?: boolean;
+  b?: boolean;
+  nested: {
+    x?: boolean;
+    y?: boolean;
+    constraints {
+      conflicts x with y;
+    };
+  };
+  constraints {
+    requires nested.x => b;
+    validate exists(nested.x) ? a && b : true;
+  };
+}

@@ -1,0 +1,8 @@
+config WildcardKeyCheck {
+  platforms: {
+    *: { lib_path: string; };
+  };
+  constraints {
+    validate wildcard_keys(platforms) @regex("^[a-z0-9_]+$");
+  };
+}

@@ -1,0 +1,6 @@
+config InvalidConstraintSemicolon {
+  a: boolean;
+  constraints {
+    validate a
+  };
+}

@@ -1,0 +1,3 @@
+config InvalidRegexAnn {
+  name: string @regex(^[a-z]+$);
+}
